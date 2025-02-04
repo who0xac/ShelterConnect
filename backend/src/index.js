@@ -21,7 +21,6 @@ connectDB();
 
 app.use('/',route);
 // Start the server
-
 app.listen(Port, () => {
     console.log(`Server running on port ${Port}`);
 });

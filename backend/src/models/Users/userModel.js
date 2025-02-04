@@ -15,6 +15,11 @@ class UserModel {
     return await User.findOne({ email });
   }
 
+  // Find user by ID
+  async findUserById(userId) {
+    return await User.findById(userId);
+  }
+
   // Get all users
   async getAllUsers() {
     return await User.find();
