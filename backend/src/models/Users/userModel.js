@@ -15,6 +15,11 @@ class UserModel {
     return await User.findOne({ email });
   }
 
+  // Create multiple users
+  async createUsers(users) {
+    return await User.insertMany(users); // Insert an array of users
+  }
+
   // Find user by ID
   async findUserById(userId) {
     return await User.findById(userId);

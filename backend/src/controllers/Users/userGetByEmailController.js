@@ -2,6 +2,7 @@ import UserModel from "../../models/Users/userModel.js";
 
 export default async function getUserByEmail(req, res) {
   try {
+   
     const user = await UserModel.findUserByEmail(req.params.email);
     if (!user) {
       return res

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -12,6 +12,9 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { createUser } from "../api/userApi";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Registration = ({ onBackToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -40,9 +43,43 @@ const Registration = ({ onBackToLogin }) => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Form submitted:", formData);
+
+    try {
+      const response = await createUser(formData);
+      console.log("User registered successfully:", response);
+
+      // Show success toast
+      toast.success("User registered successfully!");
+
+      // Optionally, clear the form after submission
+      setFormData({
+        companyName: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        correspondingEmail: "",
+        addressLine1: "",
+        area: "",
+        city: "",
+        postCode: "",
+        phoneNumber: "",
+      });
+
+      setTimeout(() => {
+        onBackToLogin(); 
+      }, 4000); 
+    } catch (error) {
+      console.error("Error registering user:", error);
+
+      // Show error toast
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to register user. Please try again."
+      );
+    }
   };
 
   const handleTogglePassword = () => {
@@ -62,6 +99,7 @@ const Registration = ({ onBackToLogin }) => {
           mb: 4,
         }}
       >
+        {/* Form Fields */}
         <TextField
           required
           fullWidth
@@ -193,7 +231,7 @@ const Registration = ({ onBackToLogin }) => {
         </Button>
 
         <Typography align="center" color="textSecondary">
-          Already have an Account? {" "}
+          Already have an Account?{" "}
           <Button
             onClick={onBackToLogin}
             sx={{
@@ -211,6 +249,9 @@ const Registration = ({ onBackToLogin }) => {
           </Button>
         </Typography>
       </Box>
+
+      {/* ToastContainer for showing notifications */}
+      <ToastContainer />
     </Container>
   );
 };
