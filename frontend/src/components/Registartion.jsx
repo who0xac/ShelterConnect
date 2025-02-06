@@ -7,11 +7,17 @@ import {
   Container,
   InputAdornment,
   IconButton,
+  Stack,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const Registration = ({ onBackToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [formData, setFormData] = useState({
     companyName: "",
     firstName: "",
@@ -59,17 +65,17 @@ const Registration = ({ onBackToLogin }) => {
         <TextField
           required
           fullWidth
-          label="Company name"
+          label="Company Name"
           name="companyName"
           value={formData.companyName}
           onChange={handleChange}
         />
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Stack spacing={2} direction={isSmallScreen ? "column" : "row"}>
           <TextField
             required
             fullWidth
-            label="First name"
+            label="First Name"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
@@ -77,14 +83,14 @@ const Registration = ({ onBackToLogin }) => {
           <TextField
             required
             fullWidth
-            label="Last name"
+            label="Last Name"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
           />
-        </Box>
+        </Stack>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Stack spacing={2} direction={isSmallScreen ? "column" : "row"}>
           <TextField
             required
             fullWidth
@@ -112,7 +118,7 @@ const Registration = ({ onBackToLogin }) => {
               ),
             }}
           />
-        </Box>
+        </Stack>
 
         <TextField
           required
@@ -133,7 +139,7 @@ const Registration = ({ onBackToLogin }) => {
           onChange={handleChange}
         />
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Stack spacing={2} direction={isSmallScreen ? "column" : "row"}>
           <TextField
             required
             fullWidth
@@ -150,9 +156,9 @@ const Registration = ({ onBackToLogin }) => {
             value={formData.city}
             onChange={handleChange}
           />
-        </Box>
+        </Stack>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Stack spacing={2} direction={isSmallScreen ? "column" : "row"}>
           <TextField
             required
             fullWidth
@@ -169,7 +175,7 @@ const Registration = ({ onBackToLogin }) => {
             value={formData.phoneNumber}
             onChange={handleChange}
           />
-        </Box>
+        </Stack>
 
         <Button
           type="submit"
@@ -180,16 +186,14 @@ const Registration = ({ onBackToLogin }) => {
             mb: 2,
             py: 1.5,
             backgroundColor: "#1976d2",
-            "&:hover": {
-              backgroundColor: "#1565c0",
-            },
+            "&:hover": { backgroundColor: "#1565c0" },
           }}
         >
           Create Account
         </Button>
 
         <Typography align="center" color="textSecondary">
-          Already have an Account?{" "}
+          Already have an Account? {" "}
           <Button
             onClick={onBackToLogin}
             sx={{

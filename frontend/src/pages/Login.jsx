@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
@@ -8,6 +8,19 @@ import "../assets/css/Login.css";
 const LoginPage = () => {
   const [showRegistration, setShowRegistration] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Effect to disable scrolling when registration is open
+  useEffect(() => {
+    if (showRegistration) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto"; 
+    };
+  }, [showRegistration]);
 
   return (
     <Box
@@ -56,6 +69,9 @@ const LoginPage = () => {
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           zIndex: 2,
           mx: 2,
+          mt: 2,
+          mb: 4,
+          maxHeight: "700px",
         }}
       >
         {/* Left Section */}
@@ -74,8 +90,8 @@ const LoginPage = () => {
             src="../src/assets/icons/shelterconnect-removebg.png"
             alt="ShelterConnect Logo"
             sx={{
-              width: "450px",
-              height: "550px",
+              width: "400px",
+              height: "350px",
               filter: "invert(1) brightness(2) contrast(2)",
             }}
           />
@@ -92,7 +108,9 @@ const LoginPage = () => {
           }}
         >
           {showRegistration ? (
-            <Registration onBackToLogin={() => setShowRegistration(false)} />
+            <Box sx={{ margin: 0 }}>
+              <Registration onBackToLogin={() => setShowRegistration(false)} />
+            </Box>
           ) : (
             <>
               <Box sx={{ mb: 4, textAlign: "center" }}>
