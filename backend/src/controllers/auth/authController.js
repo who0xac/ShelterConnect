@@ -37,11 +37,10 @@ export const loginUser = async (req, res) => {
 
 export const registerUser = async (req, res) => {
   try {
-    console.log("Incoming Request:", req.body);
 
     const { email, password, ...otherData } = req.body;
 
-    // ✅ Use findUserByEmail instead of findOne
+
     const existingUser = await UserModel.findUserByEmail(email);
     if (existingUser) {
       console.log("User already exists:", email);
@@ -52,14 +51,12 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // ✅ Use createUser method instead of `new UserModel.createUser()`
     const newUser = await UserModel.createUser({
       email,
       password: hashedPassword,
       ...otherData,
     });
 
-    console.log("User registered successfully:", newUser);
 
     return res.status(201).json({
       message: "User registered successfully",
