@@ -2,25 +2,61 @@ import React, { useState, useEffect } from "react";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import { ToastContainer, toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import Registration from "../components/Registartion";
+import { loginUser } from "../api/authApi.js";
 import "../assets/css/Login.css";
+import 'react-toastify/dist/ReactToastify.css';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [showRegistration, setShowRegistration] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   // Effect to disable scrolling when registration is open
   useEffect(() => {
-    if (showRegistration) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-
+    document.body.style.overflow = showRegistration ? "hidden" : "auto";
     return () => {
-      document.body.style.overflow = "auto"; 
+      document.body.style.overflow = "auto";
     };
   }, [showRegistration]);
+
+  // Handle Login
+  const handleLogin = async () => {
+    setError("");
+    try {
+      const data = await loginUser(email, password);
+      localStorage.setItem("token", data.token);
+      
+      toast.success('Login Successful!', {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+      
+    } catch (err) {
+      toast.error(err.message || 'Login failed. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      setError(err);
+    }
+  };
 
   return (
     <Box
@@ -57,6 +93,8 @@ const LoginPage = () => {
         justifyContent: "center",
       }}
     >
+      <ToastContainer />
+      
       <Box
         sx={{
           display: "flex",
@@ -129,11 +167,19 @@ const LoginPage = () => {
                 </Typography>
               </Box>
 
+              {error && (
+                <Typography sx={{ color: "red", mb: 2, textAlign: "center" }}>
+                  {error}
+                </Typography>
+              )}
+
               <TextField
                 fullWidth
                 label="Email"
                 variant="standard"
                 margin="normal"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 sx={{
                   "& .MuiInput-underline:before": {
                     borderBottomColor: "#ddd",
@@ -148,6 +194,8 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   variant="standard"
                   margin="normal"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   sx={{
                     "& .MuiInput-underline:before": {
                       borderBottomColor: "#ddd",
@@ -193,6 +241,7 @@ const LoginPage = () => {
                     bgcolor: "#1976d2",
                   },
                 }}
+                onClick={handleLogin}
               >
                 Login
               </Button>

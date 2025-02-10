@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -12,7 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { createUser } from "../api/userApi";
+import { registerUser } from "../api/authApi.js"; // Ensure this is the correct API function
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -47,7 +47,7 @@ const Registration = ({ onBackToLogin }) => {
     event.preventDefault();
 
     try {
-      const response = await createUser(formData);
+      const response = await registerUser(formData); // Fixed function name
       console.log("User registered successfully:", response);
 
       // Show success toast
@@ -69,18 +69,21 @@ const Registration = ({ onBackToLogin }) => {
       });
 
       setTimeout(() => {
-        onBackToLogin(); 
-      }, 4000); 
+        onBackToLogin();
+      }, 3000);
     } catch (error) {
       console.error("Error registering user:", error);
 
       // Show error toast
       toast.error(
-        error.response?.data?.message ||
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
           "Failed to register user. Please try again."
       );
+    
     }
   };
+
 
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);

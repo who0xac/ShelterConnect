@@ -1,162 +1,151 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
+  CssBaseline,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  AppBar,
+  Toolbar,
   Typography,
+  IconButton,
+  Divider,
   Button,
-  Grid,
-  Card,
-  CardContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import HomeIcon from "@mui/icons-material/Home";
+import PeopleIcon from "@mui/icons-material/People";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
 
-const DashboardPage = () => {
-  const [openLogoutDialog, setOpenLogoutDialog] = React.useState(false);
+const drawerWidth = 240;
 
-  const handleLogoutConfirmation = () => {
-    setOpenLogoutDialog(true);
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
-  const handleCloseLogoutDialog = () => {
-    setOpenLogoutDialog(false);
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Clear token
+    navigate("/"); // Redirect to login
   };
 
-  return (
+  const drawer = (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        bgcolor: "#f5f5f5",
-        p: 4,
+        width: drawerWidth,
+        bgcolor: "#1a237e",
+        color: "white",
+        height: "100vh",
       }}
     >
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-        Welcome, User
-      </Typography>
-
-      <Grid container spacing={4} sx={{ width: "100%", maxWidth: 1200 }}>
-        {/* Profile Summary Card */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Card
-            sx={{
-              maxWidth: 345,
-              height: "100%",
-              boxShadow: 3,
-              "&:hover": { boxShadow: 6 },
-            }}
-          >
-            <CardContent>
-              <Typography variant="h5" component="div" sx={{ mb: 2 }}>
-                Profile Summary
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  mb: 2,
-                }}
-              >
-                <img
-                  src="https://via.placeholder.com/100"
-                  alt="Profile"
-                  style={{
-                    width: 100,
-                    height: 100,
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                  }}
-                />
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Name: John Doe
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Email: john.doe@example.com
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Activity Summary Card */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Card
-            sx={{
-              maxWidth: 345,
-              height: "100%",
-              boxShadow: 3,
-              "&:hover": { boxShadow: 6 },
-            }}
-          >
-            <CardContent>
-              <Typography variant="h5" component="div" sx={{ mb: 2 }}>
-                Activity Summary
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Total Activities: 15
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Last Activity: 2 days ago
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Notifications Card */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Card
-            sx={{
-              maxWidth: 345,
-              height: "100%",
-              boxShadow: 3,
-              "&:hover": { boxShadow: 6 },
-            }}
-          >
-            <CardContent>
-              <Typography variant="h5" component="div" sx={{ mb: 2 }}>
-                Notifications
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                You have 5 unread notifications.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Logout Button */}
-      <Box sx={{ mt: 4 }}>
+      <Toolbar>
+        <Typography variant="h6" sx={{ fontWeight: "bold", mx: "auto" }}>
+          SHELTERCONNECT
+        </Typography>
+      </Toolbar>
+      <Divider sx={{ bgcolor: "white" }} />
+      <List>
+        {[
+          { text: "Home", icon: <HomeIcon /> },
+          { text: "Users", icon: <PeopleIcon /> },
+          { text: "Settings", icon: <SettingsIcon /> },
+        ].map((item, index) => (
+          <ListItem key={index} disablePadding>
+            <ListItemButton>
+              <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      <Box sx={{ position: "absolute", bottom: 20, width: "100%" }}>
         <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleLogoutConfirmation}
+          startIcon={<LogoutIcon />}
+          fullWidth
+          onClick={handleLogout}
+          sx={{
+            color: "white",
+            justifyContent: "flex-start",
+            pl: 2,
+            "&:hover": { bgcolor: "rgba(255, 255, 255, 0.2)" },
+          }}
         >
           Logout
         </Button>
       </Box>
+    </Box>
+  );
 
-      {/* Logout Confirmation Dialog */}
-      <Dialog open={openLogoutDialog} onClose={handleCloseLogoutDialog}>
-        <DialogTitle>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <Typography>Are you sure you want to logout?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseLogoutDialog}>Cancel</Button>
-          <Button
-            onClick={() => (window.location.href = "/")}
-            color="secondary"
+  return (
+    <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+
+      {/* Header */}
+      <AppBar
+        position="fixed"
+        sx={{
+          bgcolor: "#1a237e",
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: "none" } }}
           >
-            Logout
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap>
+            Dashboard
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      {/* Sidebar (Drawer) */}
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      >
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          sx={{ "& .MuiDrawer-paper": { width: drawerWidth } }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": { width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+
+      {/* Main Content */}
+      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+        <Typography variant="h4">Welcome to the Dashboard</Typography>
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          This is your dashboard where you can manage users, settings, and more.
+        </Typography>
+      </Box>
     </Box>
   );
 };
 
-export default DashboardPage;
+export default Dashboard;
