@@ -1,6 +1,6 @@
 import RSLModel from "../../models/Rsl/rslModel.js";
 
-const createRSL = async (req, res) => {
+export default async function createRSL(req, res) {
   try {
     const {
       rslName,
@@ -14,7 +14,10 @@ const createRSL = async (req, res) => {
       postCode,
       website,
     } = req.body;
-    const logo = req.file ? req.file.filename : null;
+
+    // If file is uploaded, get the logo path
+    const logo = req.file ? `/uploads/${req.file.filename}` : null;
+
     const newRSL = await RSLModel.createRSL({
       rslName,
       firstName,
@@ -26,7 +29,7 @@ const createRSL = async (req, res) => {
       city,
       postCode,
       website,
-      logo,
+      logo, // Save logo in the DB
     });
 
     res.status(201).json({
@@ -41,6 +44,4 @@ const createRSL = async (req, res) => {
       error: error.message,
     });
   }
-};
-
-export default createRSL;
+}

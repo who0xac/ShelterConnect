@@ -1,28 +1,55 @@
-import React from "react";
-import { Menu, UserCircle } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import React from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Box,
+  Avatar,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-const Header = ({ sidebarOpen, onMenuClick, userName = "User" }) => {
+const Header = ({ sidebarOpen, drawerWidth, handleDrawerToggle, userName }) => {
   return (
-    <div className="fixed top-0 right-0 left-0 bg-white border-b border-gray-200 z-50">
-      <div className="h-16 px-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <button
-            onClick={onMenuClick}
-            className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+    <AppBar
+      position="fixed"
+      sx={{
+        bgcolor: "#ffffff",
+        color: "#1a237e",
+        width: { sm: `calc(100% - ${sidebarOpen ? drawerWidth : 80}px)` },
+        ml: { sm: `${sidebarOpen ? drawerWidth : 80}px` },
+        transition: "width 0.3s, margin-left 0.3s",
+        boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <IconButton
+          color="inherit"
+          edge="start"
+          onClick={handleDrawerToggle}
+          sx={{ mr: 2, display: { sm: "none" } }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography
+          variant="h6"
+          noWrap
+          sx={{ fontFamily: "Poppins, sans-serif", fontWeight: 600 }}
+        />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography
+            variant="body1"
+            sx={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
           >
-            <Menu className="h-6 w-6" />
-          </button>
-          <h1 className="text-xl font-semibold text-indigo-900">Dashboard</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="font-medium">Hi, {userName}</span>
-          <Avatar>
-            <UserCircle className="h-6 w-6" />
+            Hi, {userName}
+          </Typography>
+          <Avatar sx={{ bgcolor: "#1a237e" }}>
+            <AccountCircleIcon />
           </Avatar>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

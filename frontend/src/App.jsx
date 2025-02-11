@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from './pages/Login.jsx';
 import DashboardPage from "./pages/Dashboard.jsx";
 import ProtectedRoute from "./pages/ProtectedRoute.jsx";
+import RegisteredRSL from "./pages/RegisteredRSL.jsx"; 
+
+
 function App() {
   return (
     <BrowserRouter>
@@ -9,6 +12,8 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/registered-rsl" element={<RegisteredRSL />} />
+       
         </Route>
       </Routes>
     </BrowserRouter>

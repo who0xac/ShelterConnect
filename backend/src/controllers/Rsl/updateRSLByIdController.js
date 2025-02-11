@@ -3,6 +3,7 @@ import RSLModel from "../../models/Rsl/rslModel.js";
 export default async function updateRSLById(req, res) {
   try {
     const { id } = req.params;
+
     const updatedRSL = await RSLModel.updateRSLById(id, req.body);
 
     if (!updatedRSL) {

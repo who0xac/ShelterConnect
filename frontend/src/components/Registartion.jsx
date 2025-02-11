@@ -12,7 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { registerUser } from "../api/authApi.js"; // Ensure this is the correct API function
+import { registerUser } from "../api/authApi.js"; 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
