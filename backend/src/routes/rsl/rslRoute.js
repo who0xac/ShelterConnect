@@ -4,7 +4,8 @@ import {
   getAllRSLs,
   getRSLByUserId,
   deleteRSLById,
-  updateRSLById
+  updateRSLById,
+  uploadImage
 } from "../../controllers/Rsl/index.js";
 
 const rsl = express.Router();
@@ -14,5 +15,7 @@ rsl.get("/", getAllRSLs);
 rsl.get("/:id", getRSLByUserId);
 rsl.delete("/:id", deleteRSLById);
 rsl.put("/:id", updateRSLById);
+rsl.post("/:id", uploadImage);
+
 
 export default rsl;  

@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom"; // Changed from PeopleIcon to FamilyRestroomIcon for tenants
+import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom"; 
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import BadgeIcon from "@mui/icons-material/Badge";
 import GroupWorkIcon from "@mui/icons-material/GroupWork";
@@ -105,10 +105,9 @@ const Dashboard = () => {
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
-            
           }}
         >
-          ShelterConnect
+         ShelterConnect
         </Typography>
         <IconButton onClick={handleSidebarToggle} sx={{ color: "white" }}>
           {sidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
