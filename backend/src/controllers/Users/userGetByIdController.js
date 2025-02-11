@@ -1,10 +1,7 @@
 import UserModel from "../../models/Users/userModel.js";
 
 export default async function getUserById(req, res) {
-  console.log("====================================");
-  console.log(req.params);
-  console.log(req.query);
-  console.log("====================================");
+ 
   try {
     const user = await UserModel.findUserById(req.params.id);
     if (!user) {
