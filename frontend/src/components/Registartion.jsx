@@ -12,7 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { registerUser } from "../api/authApi.js"; 
+import { registerUser } from "../api/userApi.js"; 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -47,7 +47,7 @@ const Registration = ({ onBackToLogin }) => {
     event.preventDefault();
 
     try {
-      const response = await registerUser(formData); // Fixed function name
+      const response = await registerUser(formData); 
       console.log("User registered successfully:", response);
 
       // Show success toast

@@ -4,6 +4,8 @@ import { Box, CssBaseline } from "@mui/material";
 import Header from "../components/Header.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import MainContent from "../components/MainContent.jsx";
+import { jwtDecode } from "jwt-decode"; 
+import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
 
@@ -13,19 +15,11 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userName, setUserName] = useState("");
 
+
   useEffect(() => {
-    fetchUserData();
+    getCurrentUser(navigate, setUserName);
   }, []);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/users");
-      const data = await response.json();
-      setUserName(data.name || "User");
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

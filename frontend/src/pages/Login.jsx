@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import { ToastContainer, toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import Registration from "../components/Registartion";
-import { loginUser } from "../api/authApi.js";
+import { loginUser } from "../api/userApi.js";
 import "../assets/css/Login.css";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -31,8 +31,8 @@ const LoginPage = () => {
     try {
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.token);
-      
-      toast.success('Login Successful!', {
+
+      toast.success("Login Successful!", {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -42,11 +42,11 @@ const LoginPage = () => {
       });
 
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }, 2000);
-      
     } catch (err) {
-      toast.error(err.message || 'Login failed. Please try again.', {
+      console.error("Login error:", err);
+      toast.error(err.message, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -54,7 +54,8 @@ const LoginPage = () => {
         pauseOnHover: true,
         draggable: true,
       });
-      setError(err);
+
+      setError(err.message);
     }
   };
 
@@ -94,7 +95,7 @@ const LoginPage = () => {
       }}
     >
       <ToastContainer />
-      
+
       <Box
         sx={{
           display: "flex",

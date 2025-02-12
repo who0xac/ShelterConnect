@@ -1,7 +1,6 @@
-import mongoose from "mongoose";
-import userSchema from "../../schemas/Users/userSchema.js";
 
-const User = mongoose.model("User", userSchema);
+import User from "../../schemas/Users/userSchema.js";
+
 
 class UserModel {
   // Create a new user

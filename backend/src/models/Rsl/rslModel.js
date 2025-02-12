@@ -1,7 +1,4 @@
-import mongoose from "mongoose";
-import rslSchema from "../../schemas/Rsl/rslSchema.js";
-
-const RSL = mongoose.model("RSL", rslSchema);
+import RSL from "../../schemas/Rsl/rslSchema.js";
 
 class RSLModel {
   // Create a new RSL

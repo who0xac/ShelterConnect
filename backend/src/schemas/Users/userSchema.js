@@ -13,10 +13,19 @@ const userSchema = new mongoose.Schema(
     city: { type: String, required: true },
     postCode: { type: String, required: true },
     phoneNumber: { type: String, required: true },
+    role: {
+      type: Number,
+      enum: [1, 2, 3], 
+      required: true,
+      default: 2, 
+    },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
-export default userSchema;
+
+const User = mongoose.model("User", userSchema);
+export default User;
+

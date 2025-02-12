@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 import {
   createRSL,
   getAllRSLs,
-  getRSLByUserId,
+  getRSLById,
   deleteRSLById,
   updateRSLById,
 } from "../../controllers/Rsl/index.js";
-import RSLModel from "../../models/Rsl/rslModel.js"; 
+import RSLModel from "../../models/Rsl/rslModel.js";
 
 const uploadDir = "./uploads/";
 if (!fs.existsSync(uploadDir)) {
@@ -24,52 +24,53 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage }).single("logo");
+const upload = multer({ storage });
 
 const rsl = express.Router();
 
-// ✅ Update RSL (With File Upload)
-rsl.put("/:id", (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "File upload failed", error: err });
-    }
+// Create RSL
+rsl.post("/", upload.single("logo"), async (req, res) => {
+  try {
+    req.body.logo = req.file ? `/uploads/${req.file.filename}` : null;
+    await createRSL(req, res);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error creating RSL", error: error.message });
+  }
+});
 
+// Update RSL
+rsl.put("/:id", upload.single("logo"), async (req, res) => {
+  try {
     if (req.file) {
-      // If a new file is uploaded, add it to req.body
       req.body.logo = `/uploads/${req.file.filename}`;
 
-      // Get the old logo path from DB
-      const oldRSL = await RSLModel.getRSLById(req.params.id);
+      // Get the old RSL record
+      const oldRSL = await RSLModel.findById(req.params.id);
       if (oldRSL && oldRSL.logo) {
         const oldLogoPath = `.${oldRSL.logo}`;
         if (fs.existsSync(oldLogoPath)) {
-          fs.unlinkSync(oldLogoPath); // Delete old logo
+          fs.unlinkSync(oldLogoPath);
         }
       }
     }
 
-    updateRSLById(req, res);
-  });
+    await updateRSLById(req, res);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating RSL", error: error.message });
+  }
 });
 
-rsl.post("/", (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "File upload failed", error: err });
-    }
-
-    req.body.logo = req.file ? `/uploads/${req.file.filename}` : null;
-    createRSL(req, res);
-  });
-});
-
+// Get all RSLs
 rsl.get("/", getAllRSLs);
-rsl.get("/:id", getRSLByUserId);
+
+// Get RSL by ID
+rsl.get("/:id", getRSLById);
+
+// Delete RSL
 rsl.delete("/:id", deleteRSLById);
 
 export default rsl;

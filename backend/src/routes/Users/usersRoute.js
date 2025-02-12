@@ -1,7 +1,8 @@
 import express from "express";
 import {
-  createUser,
-  getUser,
+  loginUser,
+  registerUser,
+  getAllUsers,
   deleteUser,
   getUserByEmail,
   updateUser,
@@ -10,11 +11,13 @@ import {
 
 const users = express.Router();
 
-users.post("/", createUser);
-users.get("/", getUser);
-users.get("/:email", getUserByEmail);
+
+users.get("/", getAllUsers);
+users.get("/email/:email", getUserByEmail);
 users.put("/:id", updateUser);
 users.delete("/:id", deleteUser);
-users.get("id/:id", getUserById);
+users.get("/:id", getUserById);
+users.post('/login', loginUser);
+users.post('/register', registerUser);
 
 export default users;

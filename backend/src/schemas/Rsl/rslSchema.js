@@ -17,4 +17,5 @@ const rslSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default rslSchema;
+const RSL = mongoose.model("RSL", rslSchema); 
+export default RSL; 

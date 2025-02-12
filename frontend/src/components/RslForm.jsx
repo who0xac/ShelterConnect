@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,9 +15,12 @@ import {
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const RslForm = ({ onSuccess, onClose }) => {
+// Import RSL API functions
+import { createRSL, updateRSLById } from "../api/rslApi.js"; 
+const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const navigate = useNavigate();
 
+  // State for form data
   const [formData, setFormData] = useState({
     rslName: "",
     firstName: "",
@@ -31,15 +34,37 @@ const RslForm = ({ onSuccess, onClose }) => {
     website: "",
     logo: null,
   });
+
+  // State for logo preview
   const [logoPreview, setLogoPreview] = useState(null);
+
+  // State for form errors
   const [errors, setErrors] = useState({});
 
+  // Initialize form data if in edit mode
+  useEffect(() => {
+    if (editMode && initialData) {
+      setFormData({
+        ...initialData,
+        logo: null, // Reset logo since we don't want to show the old one
+      });
+
+      // If there's a logo URL in initialData, set it as preview
+      if (initialData.logo) {
+        setLogoPreview(initialData.logo);
+      }
+    }
+  }, [editMode, initialData]);
+
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // Clear error for the field if it exists
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -48,9 +73,11 @@ const RslForm = ({ onSuccess, onClose }) => {
     }
   };
 
+  // Handle logo file upload
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         setErrors((prev) => ({
           ...prev,
@@ -59,6 +86,7 @@ const RslForm = ({ onSuccess, onClose }) => {
         return;
       }
 
+      // Validate file type (image only)
       if (!file.type.startsWith("image/")) {
         setErrors((prev) => ({
           ...prev,
@@ -67,11 +95,13 @@ const RslForm = ({ onSuccess, onClose }) => {
         return;
       }
 
+      // Update form data with the new logo file
       setFormData((prev) => ({
         ...prev,
         logo: file,
       }));
 
+      // Create a preview of the logo
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result);
@@ -80,6 +110,7 @@ const RslForm = ({ onSuccess, onClose }) => {
     }
   };
 
+  // Remove logo from form
   const removeLogo = () => {
     setFormData((prev) => ({
       ...prev,
@@ -88,6 +119,7 @@ const RslForm = ({ onSuccess, onClose }) => {
     setLogoPreview(null);
   };
 
+  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
 
@@ -95,81 +127,106 @@ const RslForm = ({ onSuccess, onClose }) => {
     if (!formData.firstName.trim())
       newErrors.firstName = "First Name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Invalid email format";
-    }
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone Number is required";
-    } else if (!/^\d{3}-\d{3}-\d{4}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = "Phone format: 555-555-5555";
-    }
+   if (!formData.phoneNumber.trim()) {
+     newErrors.phoneNumber = "Phone Number is required";
+   } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
+     newErrors.phoneNumber = "Phone Number must be exactly 10 digits";
+   }
     if (!formData.addressLine1.trim())
       newErrors.addressLine1 = "Address is required";
     if (!formData.area.trim()) newErrors.area = "Area is required";
     if (!formData.city.trim()) newErrors.city = "City is required";
     if (!formData.postCode.trim()) newErrors.postCode = "Post Code is required";
-    if (formData.website && !/^https?:\/\/\S+\.\S+/.test(formData.website)) {
-      newErrors.website = "Invalid website URL";
-    }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.keys(newErrors).length === 0; 
   };
 
+  // Handle form submission (using API functions)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate form before submission
     if (!validateForm()) {
       return;
     }
 
+    // Prepare form data (including logo if uploaded)
     const formDataToSend = new FormData();
     Object.keys(formData).forEach((key) => {
+      if (key === "logo" && !formData[key] && editMode) {
+        // Skip logo if it hasn't changed in edit mode
+        return;
+      }
       formDataToSend.append(key, formData[key]);
     });
 
     try {
-      const response = await fetch("http://localhost:3000/rsl", {
-        method: "POST",
-        body: formDataToSend,
-      });
+      let result;
 
-      const result = await response.json();
+      // Use createRSL or updateRSLById based on editMode
+      if (editMode) {
+        result = await updateRSLById(initialData._id, formDataToSend);
+      } else {
+        result = await createRSL(formDataToSend);
+      }
 
+      // Handle API response
       if (result.success) {
-        toast.success("RSL registered successfully!", {
-          position: "top-center",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+        toast.success(
+          editMode
+            ? "RSL updated successfully!"
+            : "RSL registered successfully!",
+          {
+            position: "top-center",
+            autoClose: 2000,
+          }
+        );
 
-        // Call onSuccess prop to refresh parent component's data if provided
         if (onSuccess) {
-          onSuccess();
+          onSuccess(); 
         }
 
-        // Automatically close the form after 2 seconds
         setTimeout(() => {
           if (onClose) {
             onClose(); 
           }
         }, 2000);
-
       } else {
-        toast.error(result.message || "Failed to register RSL", {
+        toast.error(
+          result.message || `Failed to ${editMode ? "update" : "register"} RSL`,
+          {
+            position: "top-center",
+          }
+        );
+      }
+    } catch (error) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data.message || error.response.statusText;
+
+        // Check for MongoDB duplicate key error
+        if (errorMessage.includes("E11000")) {
+          toast.error("Duplicate entry detected. This record already exists.", {
+            position: "top-center",
+          });
+        } else {
+          toast.error(`Error: ${errorMessage}`, {
+            position: "top-center",
+          });
+        }
+      } else if (error.request) {
+        toast.error("No response from server. Please try again.", {
+          position: "top-center",
+        });
+      } else {
+        toast.error(`Request error: ${error.message}`, {
           position: "top-center",
         });
       }
-    } catch (error) {
-      toast.error("Network error. Please try again.", {
-        position: "top-center",
-      });
     }
   };
 
@@ -248,8 +305,6 @@ const RslForm = ({ onSuccess, onClose }) => {
                 name="website"
                 value={formData.website}
                 onChange={handleInputChange}
-                error={!!errors.website}
-                helperText={errors.website}
               />
             </Grid>
 
@@ -297,7 +352,7 @@ const RslForm = ({ onSuccess, onClose }) => {
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
                 error={!!errors.phoneNumber}
-                helperText={errors.phoneNumber || "Phone format: 555-555-5555"}
+                helperText={errors.phoneNumber}
               />
             </Grid>
 
@@ -361,7 +416,7 @@ const RslForm = ({ onSuccess, onClose }) => {
                   py: 1.5,
                 }}
               >
-                Register RSL
+                {editMode ? "Update RSL" : "Register RSL"}
               </Button>
             </Grid>
           </Grid>
@@ -385,6 +440,8 @@ const RslForm = ({ onSuccess, onClose }) => {
 RslForm.propTypes = {
   onSuccess: PropTypes.func,
   onClose: PropTypes.func,
+  initialData: PropTypes.object,
+  editMode: PropTypes.bool,
 };
 
 export default RslForm;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   Box,
   Typography,
@@ -15,6 +17,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   TextField,
   Grid,
@@ -29,6 +32,9 @@ import Sidebar from "../components/Sidebar";
 import RslForm from "../components/RslForm";
 import CloseIcon from "@mui/icons-material/Close";
 
+// Import API functions
+import { getAllRSLs, deleteRSLById } from "../api/rslApi.js";
+import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
 
@@ -38,10 +44,12 @@ const RegisteredRSL = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userName, setUserName] = useState("");
   const [rslData, setRslData] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editData, setEditData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [openRslForm, setOpenRslForm] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedRsl, setSelectedRsl] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
   // Table control states
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,41 +57,19 @@ const RegisteredRSL = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
 
-  const [formData, setFormData] = useState({
-    rslName: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    addressLine1: "",
-    area: "",
-    city: "",
-    postCode: "",
-    logo: "",
-  });
-
   useEffect(() => {
-    fetchUserData();
     fetchRSLData();
   }, []);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/users");
-      const data = await response.json();
-      setUserName(data.name || "User");
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+   useEffect(() => {
+     getCurrentUser(navigate, setUserName);
+   }, []);
 
   const fetchRSLData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/rsl");
-      const result = await response.json();
+      const result = await getAllRSLs();
 
-      // Check if the response has the expected structure
       if (result.success && Array.isArray(result.data)) {
         setRslData(result.data);
       } else {
@@ -99,7 +85,6 @@ const RegisteredRSL = () => {
     }
   };
 
-  // Table control functions
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -121,14 +106,12 @@ const RegisteredRSL = () => {
     });
   };
 
-  // Filter data based on search term
   const filteredData = rslData.filter((row) =>
     Object.values(row).some((value) =>
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
-  // Sort and paginate data
   const sortedData = sortData(filteredData);
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
   const currentData = sortedData.slice(
@@ -136,23 +119,65 @@ const RegisteredRSL = () => {
     currentPage * rowsPerPage
   );
 
-  const [openRslForm, setOpenRslForm] = useState(false);
-
-
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleSidebarToggle = () => setSidebarOpen(!sidebarOpen);
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
+    try {
+      localStorage.removeItem("token");
+      navigate("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Error during logout. Please try again.");
+    }
   };
 
-  const handleOpenRslForm = () => setOpenRslForm(true);
-  const handleCloseRslForm = () => setOpenRslForm(false);
+  const handleEditClick = (rsl) => {
+    setSelectedRsl(rsl);
+    setEditMode(true);
+    setOpenRslForm(true);
+  };
+
+  const handleDeleteClick = (rsl) => {
+    setSelectedRsl(rsl);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const result = await deleteRSLById(selectedRsl._id);
+
+      if (result.success) {
+        toast.success("RSL deleted successfully!");
+        fetchRSLData();
+      } else {
+        toast.error(result.message || "Failed to delete RSL");
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.");
+    }
+    setOpenDeleteDialog(false);
+    setSelectedRsl(null);
+  };
+
+  const handleOpenRslForm = () => {
+    setEditMode(false);
+    setSelectedRsl(null);
+    setOpenRslForm(true);
+  };
+
+  const handleCloseRslForm = () => {
+    setOpenRslForm(false);
+    setEditMode(false);
+    setSelectedRsl(null);
+  };
+
   const handleFormSuccess = () => {
-    fetchRSLData(); // Refresh the table data
-    handleCloseRslForm();
+    fetchRSLData();
+    setOpenRslForm(false);
+    setEditMode(false);
+    setSelectedRsl(null);
   };
-
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -206,7 +231,7 @@ const RegisteredRSL = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={handleOpenRslForm} // Add this onClick handler
+            onClick={handleOpenRslForm}
             sx={{
               bgcolor: "#2ecc71",
               "&:hover": { bgcolor: "#27ae60" },
@@ -220,44 +245,6 @@ const RegisteredRSL = () => {
           >
             Register New RSL
           </Button>
-          {/* Add this Dialog component just before the closing Box tag */}
-          {/* RSL Registration Dialog */}
-          <Dialog
-            open={openRslForm}
-            onClose={handleCloseRslForm}
-            maxWidth="md"
-            fullWidth
-            sx={{
-              "& .MuiDialog-paper": {
-                borderRadius: "12px",
-                padding: "16px",
-              },
-            }}
-          >
-            <DialogTitle
-              sx={{
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: 600,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              Register New RSL
-              <IconButton onClick={handleCloseRslForm}>
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent>
-              <RslForm
-                onSuccess={() => {
-                  handleFormSuccess();
-                  // Show success message if needed
-                }}
-                onClose={handleCloseRslForm}
-              />
-            </DialogContent>
-          </Dialog>
         </Box>
 
         {/* Search and Rows per page */}
@@ -275,7 +262,7 @@ const RegisteredRSL = () => {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset to first page on search
+                setCurrentPage(1);
               }}
               size="small"
               InputProps={{
@@ -428,6 +415,7 @@ const RegisteredRSL = () => {
                     <TableCell sx={{ py: 2 }}>
                       <IconButton
                         color="primary"
+                        onClick={() => handleEditClick(row)}
                         sx={{
                           "&:hover": { bgcolor: "rgba(25, 118, 210, 0.04)" },
                           transition: "background-color 0.2s",
@@ -437,6 +425,7 @@ const RegisteredRSL = () => {
                       </IconButton>
                       <IconButton
                         color="error"
+                        onClick={() => handleDeleteClick(row)}
                         sx={{
                           "&:hover": { bgcolor: "rgba(211, 47, 47, 0.04)" },
                           transition: "background-color 0.2s",
@@ -493,6 +482,79 @@ const RegisteredRSL = () => {
             Next
           </Button>
         </Box>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">Confirm Delete</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Are you sure you want to delete {selectedRsl?.rslName}? This
+              action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* RSL Form Dialog */}
+        <Dialog
+          open={openRslForm}
+          onClose={handleCloseRslForm}
+          maxWidth="md"
+          fullWidth
+          sx={{
+            "& .MuiDialog-paper": {
+              borderRadius: "12px",
+              padding: "16px",
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: 600,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            {editMode ? "Edit RSL" : "Register New RSL"}
+            <IconButton onClick={handleCloseRslForm}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            <RslForm
+              onSuccess={handleFormSuccess}
+              onClose={handleCloseRslForm}
+              initialData={editMode ? selectedRsl : null}
+              editMode={editMode}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <ToastContainer
+          position="top-center"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </Box>
     </Box>
   );
