@@ -17,15 +17,15 @@ const userSchema = new mongoose.Schema(
       type: Number,
       enum: [1, 2, 3], 
       required: true,
-      default: 2, 
+      default: 2,
     },
+    isDeleted: { type: Boolean, default: false }, 
+    status: { type: Number, enum: [0, 1], default: 1 }, 
   },
   {
     timestamps: true,
   }
 );
 
-
 const User = mongoose.model("User", userSchema);
 export default User;
-

@@ -7,29 +7,38 @@ class RSLModel {
     return await rsl.save();
   }
 
-  // Create multiple RSLs
-  async createRSLs(rslList) {
-    return await RSL.insertMany(rslList);
-  }
-
   // Find RSL by ID
   async findRSLById(rslId) {
     return await RSL.findById(rslId);
   }
 
-  // Get all RSLs
+  // Get all active RSLs
   async getAllRSLs() {
-    return await RSL.find();
+    return await RSL.find({ isDeleted: false });
+  }
+
+  // Get only deleted RSLs
+  async getDeletedRSLs() {
+    return await RSL.find({ isDeleted: true });
   }
 
   // Delete RSL by ID
-  async deleteRSLById(rslId) {
-    return await RSL.findByIdAndDelete(rslId);
+  async deleteRSL(rslId) {
+    return await RSL.findByIdAndUpdate(
+      rslId,
+      { isDeleted: true, status: 0 },
+      { new: true }
+    );
   }
 
-  // Update RSL details by ID
+  // **🔹 Fixed update method**
   async updateRSLById(rslId, data) {
     return await RSL.findByIdAndUpdate(rslId, data, { new: true });
+  }
+
+  // Get RSLs visible to a specific Managing Agent
+  async getRSLsForMA(managingAgentId) {
+    return await RSL.find({ visibleTo: managingAgentId, isDeleted: false });
   }
 }
 

@@ -4,7 +4,7 @@ import rsl from './rsl/rslRoute.js';
 
 const route = express.Router();
 
-route.use('/users',users);
-route.use('/rsl', rsl);
+route.use('/api/users',users);
+route.use('/api/rsl', rsl);
 
 export default route;

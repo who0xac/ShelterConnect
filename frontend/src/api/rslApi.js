@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:3000/rsl";
+const API_BASE_URL = "http://localhost:3000/api/rsl";
 
 // Create a new RSL entry
 export const createRSL = async (rslData) => {
@@ -30,7 +30,7 @@ export const getAllRSLs = async () => {
 // Get a single RSL by ID
 export const getRSLById = async (rslId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/id/${rslId}`);
+    const response = await axios.get(`${API_BASE_URL}/${rslId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching RSL:", error.response?.data || error.message);

@@ -17,7 +17,7 @@ async function loginUser(req, res) {
     }
 
     const user = await UserModel.findUserByEmail(email);
-    if (!user) {
+    if (!user || user.isDeleted) {
       return res.status(404).json({ message: "User does not exist" });
     }
 
@@ -78,39 +78,23 @@ async function registerUser(req, res) {
   }
 }
 
-// Delete User
-async function deleteUser(req, res) {
+//  Delete User
+async function DeleteUser(req, res) {
   try {
-    const deletedUser = await UserModel.deleteUserById(req.params.id);
+    const deletedUser = await UserModel.DeleteUser(req.params.id);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User  deleted successfully" });
   } catch (error) {
-    console.error("Delete error:", error);
+    console.error(" Delete error:", error);
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 }
 
-// Get User by Email
-async function getUserByEmail(req, res) {
-  try {
-    const user = await UserModel.findUserByEmail(req.params.email);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.status(200).json({ data: user });
-  } catch (error) {
-    console.error("Get user by email error:", error);
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
-  }
-}
-
-// Get User by ID
+// Get User by ID 
 async function getUserById(req, res) {
   try {
     const user = await UserModel.findUserById(req.params.id);
@@ -126,7 +110,7 @@ async function getUserById(req, res) {
   }
 }
 
-// Get All Users
+// Get All Users (excluding deleted users)
 async function getAllUsers(req, res) {
   try {
     const users = await UserModel.getAllUsers();
@@ -138,6 +122,7 @@ async function getAllUsers(req, res) {
       .json({ message: "Internal server error", error: error.message });
   }
 }
+
 
 // Update User
 async function updateUser(req, res) {
@@ -158,8 +143,7 @@ async function updateUser(req, res) {
 export {
   loginUser,
   registerUser,
-  deleteUser,
-  getUserByEmail,
+  DeleteUser,
   getUserById,
   getAllUsers,
   updateUser,

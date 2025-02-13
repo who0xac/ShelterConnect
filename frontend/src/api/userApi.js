@@ -1,7 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const API_BASE_URL = "http://localhost:3000/users";
+const API_BASE_URL = "http://localhost:3000/api/users";
 
 // User Login API
 export const loginUser = async (email, password) => {
@@ -10,7 +10,7 @@ export const loginUser = async (email, password) => {
       email,
       password,
     });
-    return response.data; 
+    return response.data;
   } catch (error) {
     throw error.response?.data?.message || "Login failed";
   }
@@ -20,7 +20,7 @@ export const loginUser = async (email, password) => {
 export const registerUser = async (userData) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/register`, userData);
-    return response.data; 
+    return response.data;
   } catch (error) {
     throw error.response?.data?.message;
   }
@@ -83,7 +83,6 @@ export const deleteUserById = async (userId) => {
 };
 
 // Get current user
-
 export const getCurrentUser = async (navigate, setUserName) => {
   try {
     // Get token from localStorage
@@ -99,7 +98,7 @@ export const getCurrentUser = async (navigate, setUserName) => {
     const userId = decoded.id;
 
     // Fetch user details from API
-    const response = await fetch(`http://localhost:3000/users/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/${userId}`);
     if (!response.ok) {
       throw new Error("Failed to fetch user data");
     }
@@ -117,4 +116,3 @@ export const getCurrentUser = async (navigate, setUserName) => {
     console.error("Error fetching user data:", error);
   }
 };
-

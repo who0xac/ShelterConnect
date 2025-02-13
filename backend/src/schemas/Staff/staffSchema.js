@@ -11,29 +11,17 @@ const staffSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     correspondingEmail: { type: String, required: true },
     password: { type: String, required: true },
-    role: {
-      type: Number,
-      enum: [3],
-      default: 3,
-    },
+    role: { type: Number, enum: [3], default: 3 },
     addedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", 
+      ref: "User",
       required: true,
     },
+    isDeleted: { type: Boolean, default: false },
+    status: { type: Number, enum: [0, 1], default: 1 },
   },
   { timestamps: true }
 );
-staffSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
-
-
-staffSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
 
 const Staff = mongoose.model("Staff", staffSchema);
 export default Staff;

@@ -13,9 +13,12 @@ const rslSchema = new mongoose.Schema(
     postCode: { type: String, required: true },
     website: { type: String },
     logo: { type: String },
+    isDeleted: { type: Boolean, default: false },
+    status: { type: Number, enum: [0, 1], default: 1 },
+    visibleTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
 
-const RSL = mongoose.model("RSL", rslSchema); 
-export default RSL; 
+const RSL = mongoose.model("RSL", rslSchema);
+export default RSL;

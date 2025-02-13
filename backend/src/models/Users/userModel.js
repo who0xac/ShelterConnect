@@ -1,6 +1,4 @@
-
 import User from "../../schemas/Users/userSchema.js";
-
 
 class UserModel {
   // Create a new user
@@ -9,32 +7,31 @@ class UserModel {
     return await user.save();
   }
 
-  // Find a user by email
+  //  Find user by email
   async findUserByEmail(email) {
-    return await User.findOne({ email });
-  }
-
-  // Create multiple users
-  async createUsers(users) {
-    return await User.insertMany(users); // Insert an array of users
+    return await User.findOne({ email, isDeleted: false });
   }
 
   // Find user by ID
   async findUserById(userId) {
-    return await User.findById(userId);
+    return await User.findOne({ _id: userId, isDeleted: false });
   }
 
-  // Get all users
+  //  Get all active users 
   async getAllUsers() {
-    return await User.find();
+    return await User.find({ isDeleted: false });
   }
 
-  // Delete user by ID
-  async deleteUserById(userId) {
-    return await User.findByIdAndDelete(userId);
+  //  delete user by ID
+  async DeleteUser(userId) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { isDeleted: true, status: 0 },
+      { new: true }
+    );
   }
 
-  // Update user details by ID
+  //  Update user details by ID
   async updateUserById(userId, data) {
     return await User.findByIdAndUpdate(userId, data, { new: true });
   }

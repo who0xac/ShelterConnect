@@ -28,7 +28,7 @@ const upload = multer({ storage });
 
 const rsl = express.Router();
 
-// Create RSL
+// ✅ Create RSL
 rsl.post("/", upload.single("logo"), async (req, res) => {
   try {
     req.body.logo = req.file ? `/uploads/${req.file.filename}` : null;
@@ -40,15 +40,24 @@ rsl.post("/", upload.single("logo"), async (req, res) => {
   }
 });
 
-// Update RSL
+// ✅ Update RSL
 rsl.put("/:id", upload.single("logo"), async (req, res) => {
   try {
-    if (req.file) {
-      req.body.logo = `/uploads/${req.file.filename}`;
+    const rslId = req.params.id;
+    let updatedData = { ...req.body };
 
-      // Get the old RSL record
-      const oldRSL = await RSLModel.findById(req.params.id);
-      if (oldRSL && oldRSL.logo) {
+    // ✅ Fetch the old RSL record before updating
+    const oldRSL = await RSLModel.findRSLById(rslId); // ✅ Fix: Use `findRSLById`
+    if (!oldRSL) {
+      return res.status(404).json({ message: "RSL not found" });
+    }
+
+    // ✅ Handle logo update
+    if (req.file) {
+      updatedData.logo = `/uploads/${req.file.filename}`;
+
+      // Delete the old logo if it exists
+      if (oldRSL.logo) {
         const oldLogoPath = `.${oldRSL.logo}`;
         if (fs.existsSync(oldLogoPath)) {
           fs.unlinkSync(oldLogoPath);
@@ -56,6 +65,8 @@ rsl.put("/:id", upload.single("logo"), async (req, res) => {
       }
     }
 
+    // ✅ Pass the updated data to the controller
+    req.body = updatedData;
     await updateRSLById(req, res);
   } catch (error) {
     res
@@ -64,13 +75,13 @@ rsl.put("/:id", upload.single("logo"), async (req, res) => {
   }
 });
 
-// Get all RSLs
+// ✅ Get all RSLs
 rsl.get("/", getAllRSLs);
 
-// Get RSL by ID
+// ✅ Get RSL by ID
 rsl.get("/:id", getRSLById);
 
-// Delete RSL
+// ✅ Delete RSL
 rsl.delete("/:id", deleteRSLById);
 
 export default rsl;
