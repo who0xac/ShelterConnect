@@ -2,6 +2,8 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
 const API_BASE_URL = "http://localhost:3000/api/users";
+const API_BASE_URL2 = "http://localhost:3000/api/staff";
+
 
 // User Login API
 export const loginUser = async (email, password) => {
@@ -97,22 +99,28 @@ export const getCurrentUser = async (navigate, setUserName) => {
     const decoded = jwtDecode(token);
     const userId = decoded.id;
 
-    // Fetch user details from API
-    const response = await fetch(`${API_BASE_URL}/${userId}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch user data");
+    // Try fetching from User API
+    let response = await fetch(`${API_BASE_URL}/${userId}`);
+    let result = await response.json();
+
+    // If not found in Users, try Staff API
+    if (!response.ok || !result.data) {
+      response = await fetch(`${API_BASE_URL2}/${userId}`);
+      result = await response.json();
     }
 
-    // Extract user object
-    const result = await response.json();
-    console.log("User Data Response:", result);
-
-    if (result.data) {
-      setUserName(`${result.data.firstName} ${result.data.lastName}`);
-    } else {
+    // If user is still not found, navigate to login
+    if (!result.data) {
       console.error("User data is missing in response");
+      navigate("/");
+      return;
     }
+
+    // Set the user name
+    setUserName(`${result.data.firstName} ${result.data.lastName}`);
   } catch (error) {
     console.error("Error fetching user data:", error);
+    navigate("/");
   }
 };
+

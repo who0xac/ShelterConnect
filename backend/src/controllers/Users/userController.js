@@ -2,10 +2,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import UserModel from "../../models/Users/userModel.js";
 import dotenv from "dotenv";
+import StaffModel from "../../models/Staff/staffModel.js";
 
 dotenv.config();
 
-// User Login
 async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
@@ -16,7 +16,16 @@ async function loginUser(req, res) {
         .json({ message: "Email and password are required" });
     }
 
-    const user = await UserModel.findUserByEmail(email);
+    // Try finding the user in both collections
+    let user = await UserModel.findUserByEmail(email);
+    let userType = "user";
+
+    if (!user) {
+      user = await StaffModel.findStaffByEmail(email);
+      userType = "staff";
+    }
+
+    // If user not found in both collections
     if (!user || user.isDeleted) {
       return res.status(404).json({ message: "User does not exist" });
     }
@@ -27,7 +36,7 @@ async function loginUser(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, userType },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -40,6 +49,7 @@ async function loginUser(req, res) {
       .json({ message: "Internal server error", error: error.message });
   }
 }
+
 
 // User Registration
 async function registerUser(req, res) {

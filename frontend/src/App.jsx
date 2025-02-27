@@ -4,7 +4,7 @@ import DashboardPage from "./pages/Dashboard.jsx";
 import ProtectedRoute from "./pages/ProtectedRoute.jsx";
 import RegisteredRSL from "./pages/RegisteredRSL.jsx"; 
 import Staff from "./pages/Staff.jsx";
-
+import Properties from "./pages/Properties.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -14,6 +14,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/registered-rsl" element={<RegisteredRSL />} />
           <Route path="/staff" element={<Staff />} />
+          <Route path="/properties" element={<Properties />} />
         </Route>
       </Routes>
     </BrowserRouter>

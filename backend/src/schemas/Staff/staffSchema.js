@@ -18,12 +18,11 @@ const staffSchema = new mongoose.Schema(
     },
     isDeleted: { type: Boolean, default: false },
     status: { type: Number, enum: [0, 1], default: 1 },
-
-    
+    role: { type: Number, enum: [1, 2, 3], default: 3 },
     permissions: {
       type: [Boolean],
       required: true,
-      default: Array(9).fill(false), 
+      default: Array(9).fill(false),
     },
   },
   { timestamps: true }

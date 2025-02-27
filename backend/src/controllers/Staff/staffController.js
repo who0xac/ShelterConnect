@@ -67,9 +67,7 @@ async function createStaff(req, res) {
 // Get Staff by ID
 async function getStaffById(req, res) {
   try {
-    const staff = await StaffModel.findStaffById(req.params.id).select(
-      "-password"
-    );
+    const staff = await StaffModel.findStaffById(req.params.id);
     if (!staff) {
       return res.status(404).json({
         success: false,

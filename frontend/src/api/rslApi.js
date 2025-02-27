@@ -61,3 +61,29 @@ export const deleteRSLById = async (rslId) => {
 };
 
 
+// Get only RSL names
+export const getRSLNames = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}`);
+
+    let rslNames = [];
+    if (Array.isArray(response.data)) {
+      // Case where API returns an array directly
+      rslNames = response.data.map((rsl) => rsl.rslName);
+    } else if (response.data?.data && Array.isArray(response.data.data)) {
+      // Case where API returns { data: [...] }
+      rslNames = response.data.data.map((rsl) => rsl.rslName);
+    } else {
+      console.error("Unexpected response format:", response.data);
+    }
+
+    console.log("Extracted RSL names:", rslNames);
+    return rslNames;
+  } catch (error) {
+    console.error(
+      "Error fetching RSL names:",
+      error.response?.data || error.message
+    );
+    return [];
+  }
+};

@@ -20,8 +20,8 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
-  Grid,
   CssBaseline,
+  Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,26 +29,26 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import RslForm from "../components/RslForm";
+import PropertyForm from "../components/PropertyForm.jsx";
 import CloseIcon from "@mui/icons-material/Close";
 
 // Import API functions
-import { getAllRSLs, deleteRSLById } from "../api/rslApi.js";
+import { getAllProperties, deletePropertyById } from "../api/propertyApi.js";
 import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
 
-const RegisteredRSL = () => {
+const Properties = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userName, setUserName] = useState("");
-  const [rslData, setRslData] = useState([]);
+  const [propertiesData, setPropertiesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openRslForm, setOpenRslForm] = useState(false);
+  const [openPropertyForm, setOpenPropertyForm] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedRsl, setSelectedRsl] = useState(null);
+  const [selectedProperty, setSelectedProperty] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
   // Table control states
@@ -58,28 +58,28 @@ const RegisteredRSL = () => {
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
 
   useEffect(() => {
-    fetchRSLData();
+    fetchPropertiesData();
   }, []);
 
-   useEffect(() => {
-     getCurrentUser(navigate, setUserName);
-   }, []);
+  useEffect(() => {
+    getCurrentUser(navigate, setUserName);
+  }, []);
 
-  const fetchRSLData = async () => {
+  const fetchPropertiesData = async () => {
     setLoading(true);
     try {
-      const result = await getAllRSLs();
+      const result = await getAllProperties();
 
       if (result.success && Array.isArray(result.data)) {
-        setRslData(result.data);
+        setPropertiesData(result.data);
       } else {
-        setRslData([]);
+        setPropertiesData([]);
         setError("Invalid data structure received");
       }
     } catch (error) {
-      console.error("Error fetching RSL data:", error);
-      setError("Failed to fetch RSL data");
-      setRslData([]);
+      console.error("Error fetching properties data:", error);
+      setError("Failed to fetch properties data");
+      setPropertiesData([]);
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ const RegisteredRSL = () => {
     });
   };
 
-  const filteredData = rslData.filter((row) =>
+  const filteredData = propertiesData.filter((row) =>
     Object.values(row).some((value) =>
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -132,51 +132,82 @@ const RegisteredRSL = () => {
     }
   };
 
-  const handleEditClick = (rsl) => {
-    setSelectedRsl(rsl);
+  const handleEditClick = (property) => {
+    setSelectedProperty(property);
     setEditMode(true);
-    setOpenRslForm(true);
+    setOpenPropertyForm(true);
   };
 
-  const handleDeleteClick = (rsl) => {
-    setSelectedRsl(rsl);
+  const handleDeleteClick = (property) => {
+    setSelectedProperty(property);
     setOpenDeleteDialog(true);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      const result = await deleteRSLById(selectedRsl._id);
+      const result = await deletePropertyById(selectedProperty._id);
 
       if (result.success) {
-        toast.success("RSL deleted successfully!");
-        fetchRSLData();
+        toast.success("Property deleted successfully!");
+        fetchPropertiesData();
       } else {
-        toast.error(result.message || "Failed to delete RSL");
+        toast.error(result.message || "Failed to delete property");
       }
     } catch (error) {
       toast.error("Network error. Please try again.");
     }
     setOpenDeleteDialog(false);
-    setSelectedRsl(null);
+    setSelectedProperty(null);
   };
 
-  const handleOpenRslForm = () => {
+  const handleOpenPropertyForm = () => {
     setEditMode(false);
-    setSelectedRsl(null);
-    setOpenRslForm(true);
+    setSelectedProperty(null);
+    setOpenPropertyForm(true);
   };
 
-  const handleCloseRslForm = () => {
-    setOpenRslForm(false);
+  const handleClosePropertyForm = () => {
+    setOpenPropertyForm(false);
     setEditMode(false);
-    setSelectedRsl(null);
+    setSelectedProperty(null);
   };
 
   const handleFormSuccess = () => {
-    fetchRSLData();
-    setOpenRslForm(false);
+    fetchPropertiesData();
+    setOpenPropertyForm(false);
     setEditMode(false);
-    setSelectedRsl(null);
+    setSelectedProperty(null);
+  };
+
+  // Helper function to safely render user data
+  const renderAddedBy = (addedBy) => {
+    if (!addedBy) return "N/A";
+    if (typeof addedBy === "string") return addedBy;
+    if (typeof addedBy === "object") {
+      // Return the name if available, otherwise email or any identifier that makes sense
+      return addedBy.firstName && addedBy.lastName
+        ? `${addedBy.firstName} ${addedBy.lastName}`
+        : addedBy.email || addedBy._id || "Unknown";
+    }
+    return "Unknown";
+  };
+
+  // Format date properly
+  // Format date as MM/DD/YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const year = date.getFullYear();
+
+      return `${month}/${day}/${year}`;
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
   return (
@@ -226,12 +257,12 @@ const RegisteredRSL = () => {
               color: "#2c3e50",
             }}
           >
-            Registered Social Landlords
+            Property Management
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={handleOpenRslForm}
+            onClick={handleOpenPropertyForm}
             sx={{
               bgcolor: "#2ecc71",
               "&:hover": { bgcolor: "#27ae60" },
@@ -243,7 +274,7 @@ const RegisteredRSL = () => {
               textTransform: "none",
             }}
           >
-            Register New RSL
+            Add New Property
           </Button>
         </Box>
 
@@ -258,7 +289,7 @@ const RegisteredRSL = () => {
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <TextField
-              placeholder="Search RSL..."
+              placeholder="Search Properties..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -323,30 +354,32 @@ const RegisteredRSL = () => {
             <TableHead>
               <TableRow sx={{ bgcolor: "#f8fafc" }}>
                 {[
-                  { key: "rslName", label: "RSL Name" },
-                  { key: "firstName", label: "First Name" },
-                  { key: "lastName", label: "Last Name" },
-                  { key: "email", label: "Email" },
-                  { key: "phoneNumber", label: "Phone" },
-                  { key: "addressLine1", label: "Address" },
-                  { key: "area", label: "Area" },
+                  { key: "address", label: "Address" },
                   { key: "city", label: "City" },
-                  { key: "postCode", label: "Post Code" },
-                  { key: "createdAt", label: "Created At" },
+                  { key: "pincode", label: "Pincode" },
+                  { key: "rsl", label: "RSL" },
+                  { key: "addedBy", label: "Added By" },
+                  { key: "addedAt", label: "Added At" },
+                  { key: "shared", label: "Shared" },
                   { key: "actions", label: "Actions" },
                 ].map((column) => (
                   <TableCell
                     key={column.key}
                     onClick={() =>
-                      column.key !== "actions" && handleSort(column.key)
+                      column.key !== "actions" &&
+                      column.key !== "shared" &&
+                      handleSort(column.key)
                     }
                     sx={{
                       fontWeight: 600,
                       color: "#334155",
                       py: 2,
-                      cursor: column.key !== "actions" ? "pointer" : "default",
+                      cursor:
+                        column.key !== "actions" && column.key !== "shared"
+                          ? "pointer"
+                          : "default",
                       "&:hover":
-                        column.key !== "actions"
+                        column.key !== "actions" && column.key !== "shared"
                           ? { bgcolor: "rgba(0, 0, 0, 0.04)" }
                           : {},
                     }}
@@ -369,14 +402,14 @@ const RegisteredRSL = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="primary">Loading...</Typography>
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
                   <TableCell
-                    colSpan={11}
+                    colSpan={8}
                     align="center"
                     sx={{ py: 4, color: "error.main" }}
                   >
@@ -385,9 +418,9 @@ const RegisteredRSL = () => {
                 </TableRow>
               ) : currentData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
-                      No RSL data available
+                      No properties data available
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -400,17 +433,26 @@ const RegisteredRSL = () => {
                       transition: "background-color 0.2s ease",
                     }}
                   >
-                    <TableCell sx={{ py: 2 }}>{row.rslName}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.firstName}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.lastName}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.email}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.phoneNumber}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.addressLine1}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.area}</TableCell>
+                    <TableCell sx={{ py: 2 }}>{row.address}</TableCell>
                     <TableCell sx={{ py: 2 }}>{row.city}</TableCell>
                     <TableCell sx={{ py: 2 }}>{row.postCode}</TableCell>
+                    <TableCell sx={{ py: 2 }}>{row.rslTypeGroup}</TableCell>
                     <TableCell sx={{ py: 2 }}>
-                      {new Date(row.createdAt).toLocaleDateString()}
+                      {renderAddedBy(row.addedBy)}
+                    </TableCell>
+                    <TableCell sx={{ py: 2 }}>
+                      {formatDate(row.createdAt)}
+                    </TableCell>
+                    <TableCell sx={{ py: 2 }}>
+                      <Chip
+                        label={row.sharedWithOther ? "Yes" : "No"}
+                        size="small"
+                        color={row.sharedWithOther ? "success" : "info"}
+                        sx={{
+                          fontWeight: 500,
+                          minWidth: "60px",
+                        }}
+                      />
                     </TableCell>
                     <TableCell sx={{ py: 2 }}>
                       <IconButton
@@ -469,7 +511,7 @@ const RegisteredRSL = () => {
           </Typography>
           <Button
             variant="outlined"
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
@@ -493,8 +535,8 @@ const RegisteredRSL = () => {
           <DialogTitle id="alert-dialog-title">Confirm Delete</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              Are you sure you want to delete {selectedRsl?.rslName}? This
-              action cannot be undone.
+              Are you sure you want to delete property at{" "}
+              {selectedProperty?.address}? This action cannot be undone.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -507,10 +549,10 @@ const RegisteredRSL = () => {
           </DialogActions>
         </Dialog>
 
-        {/* RSL Form Dialog */}
+        {/* Property Form Dialog */}
         <Dialog
-          open={openRslForm}
-          onClose={handleCloseRslForm}
+          open={openPropertyForm}
+          onClose={handleClosePropertyForm}
           maxWidth="md"
           fullWidth
           sx={{
@@ -529,16 +571,16 @@ const RegisteredRSL = () => {
               alignItems: "center",
             }}
           >
-            {editMode ? "Edit RSL" : "Register New RSL"}
-            <IconButton onClick={handleCloseRslForm}>
+            {editMode ? "Edit Property" : "Add New Property"}
+            <IconButton onClick={handleClosePropertyForm}>
               <CloseIcon />
             </IconButton>
           </DialogTitle>
           <DialogContent>
-            <RslForm
+            <PropertyForm
               onSuccess={handleFormSuccess}
-              onClose={handleCloseRslForm}
-              initialData={editMode ? selectedRsl : null}
+              onClose={handleClosePropertyForm}
+              initialData={editMode ? selectedProperty : null}
               editMode={editMode}
             />
           </DialogContent>
@@ -560,4 +602,4 @@ const RegisteredRSL = () => {
   );
 };
 
-export default RegisteredRSL;
+export default Properties;

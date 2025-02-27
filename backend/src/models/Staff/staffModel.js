@@ -29,6 +29,12 @@ class StaffModel {
   async updateStaffById(staffId, data) {
     return await Staff.findByIdAndUpdate(staffId, data, { new: true });
   }
+
+  async findStaffByEmail(email) {
+    return await Staff.findOne({ email, isDeleted: false });
+  }
 }
+
+
 
 export default new StaffModel();
