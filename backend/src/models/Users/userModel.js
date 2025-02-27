@@ -1,5 +1,4 @@
 import User from "../../schemas/Users/userSchema.js";
-
 class UserModel {
   // Create a new user
   async createUser(data) {
@@ -7,7 +6,7 @@ class UserModel {
     return await user.save();
   }
 
-  //  Find user by email
+  // Find user by email
   async findUserByEmail(email) {
     return await User.findOne({ email, isDeleted: false });
   }
@@ -17,12 +16,17 @@ class UserModel {
     return await User.findOne({ _id: userId, isDeleted: false });
   }
 
-  //  Get all active users 
+  // Find user by ID (added this method to match findById call)
+  async findById(userId) {
+    return await User.findById(userId);
+  }
+
+  // Get all active users
   async getAllUsers() {
     return await User.find({ isDeleted: false });
   }
 
-  //  delete user by ID
+  // Delete user by ID
   async DeleteUser(userId) {
     return await User.findByIdAndUpdate(
       userId,
@@ -31,7 +35,7 @@ class UserModel {
     );
   }
 
-  //  Update user details by ID
+  // Update user details by ID
   async updateUserById(userId, data) {
     return await User.findByIdAndUpdate(userId, data, { new: true });
   }

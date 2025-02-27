@@ -28,7 +28,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-// import StaffForm from "../components/StaffForm";
+import StaffForm from "../components/StaffForm";
 import CloseIcon from "@mui/icons-material/Close";
 
 // Import API functions
@@ -322,15 +322,14 @@ const Staff = () => {
             <TableHead>
               <TableRow sx={{ bgcolor: "#f8fafc" }}>
                 {[
-                  { key: "employeeId", label: "Employee ID" },
+                  { key: "jobTitle", label: "Job Title" },
                   { key: "firstName", label: "First Name" },
                   { key: "lastName", label: "Last Name" },
                   { key: "email", label: "Email" },
-                  { key: "phoneNumber", label: "Phone" },
-                  { key: "department", label: "Department" },
-                  { key: "position", label: "Position" },
-                  { key: "joiningDate", label: "Joining Date" },
-                  { key: "status", label: "Status" },
+                  { key: "phone", label: "Phone" },
+                  { key: "gender", label: "Gender" },
+                  { key: "createdAt", label: "Created At" },
+                  { key: "correspondingEmail", label: "Corresponding Email" },
                   { key: "actions", label: "Actions" },
                 ].map((column) => (
                   <TableCell
@@ -367,14 +366,14 @@ const Staff = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography color="primary">Loading...</Typography>
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={9}
                     align="center"
                     sx={{ py: 4, color: "error.main" }}
                   >
@@ -383,7 +382,7 @@ const Staff = () => {
                 </TableRow>
               ) : currentData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       No staff data available
                     </Typography>
@@ -398,17 +397,18 @@ const Staff = () => {
                       transition: "background-color 0.2s ease",
                     }}
                   >
-                    <TableCell sx={{ py: 2 }}>{row.employeeId}</TableCell>
+                    <TableCell sx={{ py: 2 }}>{row.jobTitle}</TableCell>
                     <TableCell sx={{ py: 2 }}>{row.firstName}</TableCell>
                     <TableCell sx={{ py: 2 }}>{row.lastName}</TableCell>
                     <TableCell sx={{ py: 2 }}>{row.email}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.phoneNumber}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.department}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.position}</TableCell>
+                    <TableCell sx={{ py: 2 }}>{row.phone}</TableCell>
+                    <TableCell sx={{ py: 2 }}>{row.gender}</TableCell>
                     <TableCell sx={{ py: 2 }}>
-                      {new Date(row.joiningDate).toLocaleDateString()}
+                      {new Date(row.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.status}</TableCell>
+                    <TableCell sx={{ py: 2 }}>
+                      {row.correspondingEmail}
+                    </TableCell>
                     <TableCell sx={{ py: 2 }}>
                       <IconButton
                         color="primary"
@@ -438,7 +438,18 @@ const Staff = () => {
           </Table>
         </TableContainer>
 
-        <Button
+        {/* Pagination */}
+        <Box
+          sx={{
+            mt: 2,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 2,
+            py: 2,
+          }}
+        >
+          <Button
             variant="outlined"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -542,7 +553,7 @@ const Staff = () => {
           pauseOnHover
         />
       </Box>
-   
+    </Box>
   );
 };
 

@@ -25,13 +25,40 @@ const LoginPage = () => {
     };
   }, [showRegistration]);
 
+  // Extract error message from error response
+  const extractErrorMessage = (error) => {
+    let errorMessage = "Login failed. Please try again.";
+    
+    if (error.response) {
+      if (typeof error.response.data === "string") {
+        errorMessage = error.response.data;
+      } else if (error.response.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.response.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
+        errorMessage = error.response.data.errors[0];
+      } else if (error.response.statusText) {
+        errorMessage = error.response.statusText;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return errorMessage;
+  };
+
   // Handle Login
   const handleLogin = async () => {
+    // Clear previous errors
     setError("");
+    
     try {
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.token);
-
+      
       toast.success("Login Successful!", {
         position: "top-right",
         autoClose: 2000,
@@ -40,22 +67,28 @@ const LoginPage = () => {
         pauseOnHover: true,
         draggable: true,
       });
-
+      
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
     } catch (err) {
       console.error("Login error:", err);
-      toast.error(err.message, {
+      
+      // Extract the predefined error message
+      const errorMessage = extractErrorMessage(err);
+      
+      // Set the error message state for UI display
+      setError(errorMessage);
+      
+      // Show error toast notification
+      toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000, // Show longer for errors
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
       });
-
-      setError(err.message);
     }
   };
 
@@ -95,7 +128,6 @@ const LoginPage = () => {
       }}
     >
       <ToastContainer />
-
       <Box
         sx={{
           display: "flex",
@@ -135,7 +167,6 @@ const LoginPage = () => {
             }}
           />
         </Box>
-
         {/* Right Section */}
         <Box
           sx={{
@@ -167,13 +198,23 @@ const LoginPage = () => {
                   ShelterConnect
                 </Typography>
               </Box>
-
+              
+              {/* Error Display */}
               {error && (
-                <Typography sx={{ color: "red", mb: 2, textAlign: "center" }}>
+                <Typography
+                  sx={{
+                    color: "error.main",
+                    mb: 2,
+                    textAlign: "center",
+                    padding: "8px",
+                    backgroundColor: "rgba(255, 0, 0, 0.1)",
+                    borderRadius: "4px",
+                  }}
+                >
                   {error}
                 </Typography>
               )}
-
+              
               <TextField
                 fullWidth
                 label="Email"
@@ -187,7 +228,7 @@ const LoginPage = () => {
                   },
                 }}
               />
-
+              
               <Box sx={{ position: "relative" }}>
                 <TextField
                   fullWidth
@@ -227,7 +268,7 @@ const LoginPage = () => {
                   />
                 )}
               </Box>
-
+              
               <Button
                 fullWidth
                 variant="contained"
@@ -246,7 +287,7 @@ const LoginPage = () => {
               >
                 Login
               </Button>
-
+              
               <Box sx={{ textAlign: "center", mt: 2 }}>
                 <Typography
                   component="a"
@@ -264,6 +305,7 @@ const LoginPage = () => {
                 >
                   Forgot Password?
                 </Typography>
+                
                 <Typography
                   component="button"
                   onClick={() => setShowRegistration(true)}

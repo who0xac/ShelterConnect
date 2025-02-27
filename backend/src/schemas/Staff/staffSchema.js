@@ -11,7 +11,6 @@ const staffSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     correspondingEmail: { type: String, required: true },
     password: { type: String, required: true },
-    role: { type: Number, enum: [3], default: 3 },
     addedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -19,6 +18,13 @@ const staffSchema = new mongoose.Schema(
     },
     isDeleted: { type: Boolean, default: false },
     status: { type: Number, enum: [0, 1], default: 1 },
+
+    
+    permissions: {
+      type: [Boolean],
+      required: true,
+      default: Array(9).fill(false), 
+    },
   },
   { timestamps: true }
 );

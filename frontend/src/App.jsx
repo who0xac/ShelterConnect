@@ -3,7 +3,7 @@ import Login from './pages/Login.jsx';
 import DashboardPage from "./pages/Dashboard.jsx";
 import ProtectedRoute from "./pages/ProtectedRoute.jsx";
 import RegisteredRSL from "./pages/RegisteredRSL.jsx"; 
-// import Staff from "./pages/Staff.jsx";
+import Staff from "./pages/Staff.jsx";
 
 function App() {
   return (
@@ -13,7 +13,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/registered-rsl" element={<RegisteredRSL />} />
-          {/* <Route path="/staff" element={<Staff />} /> */}
+          <Route path="/staff" element={<Staff />} />
         </Route>
       </Routes>
     </BrowserRouter>

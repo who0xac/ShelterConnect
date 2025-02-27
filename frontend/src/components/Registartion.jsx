@@ -12,12 +12,13 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { registerUser } from "../api/userApi.js"; 
+import { registerUser } from "../api/userApi.js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Registration = ({ onBackToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -43,17 +44,40 @@ const Registration = ({ onBackToLogin }) => {
     }));
   };
 
+  const extractErrorMessage = (error) => {
+    let errorMessage = "Failed to register user. Please try again.";
+    
+    if (error.response) {
+      if (typeof error.response.data === "string") {
+        errorMessage = error.response.data;
+      } else if (error.response.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.response.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
+        errorMessage = error.response.data.errors[0];
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return errorMessage;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+    setError(""); // Clear previous errors
+    
     try {
-      const response = await registerUser(formData); 
+      const response = await registerUser(formData);
       console.log("User registered successfully:", response);
-
+      
       // Show success toast
       toast.success("User registered successfully!");
-
-      // Optionally, clear the form after submission
+      
+      // Clear the form after submission
       setFormData({
         companyName: "",
         firstName: "",
@@ -67,23 +91,21 @@ const Registration = ({ onBackToLogin }) => {
         postCode: "",
         phoneNumber: "",
       });
-
+      
       setTimeout(() => {
         onBackToLogin();
       }, 3000);
     } catch (error) {
       console.error("Error registering user:", error);
-
+      
+      // Extract and set the error message
+      const errorMessage = extractErrorMessage(error);
+      setError(errorMessage);
+      
       // Show error toast
-      toast.error(
-        error.response?.data?.error?.message ||
-          error.response?.data?.message ||
-          "Failed to register user. Please try again."
-      );
-    
+      toast.error(errorMessage);
     }
   };
-
 
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
@@ -102,6 +124,22 @@ const Registration = ({ onBackToLogin }) => {
           mb: 4,
         }}
       >
+        {/* Error Display */}
+        {error && (
+          <Typography
+            sx={{
+              color: "error.main",
+              mb: 2,
+              textAlign: "center",
+              padding: "8px",
+              backgroundColor: "rgba(255, 0, 0, 0.1)",
+              borderRadius: "4px",
+            }}
+          >
+            {error}
+          </Typography>
+        )}
+
         {/* Form Fields */}
         <TextField
           required
@@ -252,7 +290,7 @@ const Registration = ({ onBackToLogin }) => {
           </Button>
         </Typography>
       </Box>
-
+      
       {/* ToastContainer for showing notifications */}
       <ToastContainer />
     </Container>
