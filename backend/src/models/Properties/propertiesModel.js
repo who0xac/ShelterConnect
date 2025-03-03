@@ -41,6 +41,13 @@ class PropertyModel {
   async updatePropertyById(propertyId, data) {
     return await Property.findByIdAndUpdate(propertyId, data, { new: true });
   }
+
+  // Get Properties by User ID
+  async getPropertiesByUser(userId) {
+    return await Property.find({ addedBy: userId, isDeleted: false })
+      .populate("rslTypeGroup")
+      .populate("addedBy");
+  }
 }
 
 export default new PropertyModel();

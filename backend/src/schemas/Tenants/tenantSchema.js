@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const TenantSchema = new mongoose.Schema(
   {
@@ -7,9 +7,11 @@ const TenantSchema = new mongoose.Schema(
       ref: "Property",
       required: true,
     },
-    room: { type: mongoose.Schema.Types.ObjectId, ref: "Property.rooms" },
+    roomNumber: { type: Number, required: true },
     signInDate: { type: Date, required: true },
+    signOutDate: { type: Date },
     dateOfAssessment: { type: Date, required: true },
+
     preferredArea: { type: String },
     ethnicOrigin: { type: String, enum: ["Option1", "Option2"] },
     religion: { type: String, enum: ["Option1", "Option2"] },
@@ -190,4 +192,6 @@ const TenantSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Tenant", TenantSchema);
+const Tenant = mongoose.model("Tenant", TenantSchema);
+export default Tenant;
+

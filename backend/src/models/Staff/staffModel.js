@@ -9,7 +9,9 @@ class StaffModel {
   async findOne(query) {
     return await Staff.findOne(query);
   }
-
+  async getStaffByCreator(userId) {
+    return await Staff.find({ addedBy: userId, isDeleted: false });
+  }
   async findStaffById(staffId) {
     return await Staff.findById(staffId);
   }

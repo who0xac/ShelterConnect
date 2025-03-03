@@ -1,29 +1,39 @@
 import jwt from "jsonwebtoken";
-import { PAGE_ACCESS } from "../config/roles.js";
+import UserModel from "../models/Users/userModel.js"; // Import your User model
+import dotenv from "dotenv";
 
-const authMiddleware = (pageName) => (req, res, next) => {
+dotenv.config();
+
+const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    // Get token from request headers
+    const token = req.header("Authorization")?.split(" ")[1]; // "Bearer <token>"
+
     if (!token) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-
-    const userRole = req.user.role;
-
-    // Check if the user's role has access to the requested page
-    if (!PAGE_ACCESS[userRole]?.includes(pageName)) {
       return res
-        .status(403)
-        .json({ message: "Access denied: Insufficient permissions" });
+        .status(401)
+        .json({ success: false, message: "Access Denied. No token provided." });
     }
 
-    next();
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // Attach user data to request
+
+    // Fetch user details from DB (optional but recommended)
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found." });
+    }
+
+    req.user.role = user.role; // Attach role (Admin, Manager, Staff)
+    next(); // Proceed to the next middleware or controller
   } catch (error) {
-    console.error("Token verification error:", error);
-    res.status(401).json({ message: "Invalid token", error: error.message });
+    console.error("Auth Middleware Error:", error);
+    res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired token." });
   }
 };
 

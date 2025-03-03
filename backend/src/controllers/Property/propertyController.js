@@ -120,6 +120,21 @@ import UserModel from "../../models/Users/userModel.js";
         .status(500)
         .json({ success: false, message: "Error deleting property" });
     }
+    
   }
+// Get Properties for the Logged-in User
+async function getUserProperties(req, res) {
+  try {
+    const userId = req.user.id; // Extracted from the authenticated request
 
-  export { createProperty, deleteProperty,updateProperty,getAllProperties,getPropertyById}
+    const properties = await PropertyModel.getPropertiesByUser(userId);
+    res.status(200).json({ success: true, data: properties });
+  } catch (error) {
+    console.error("Get user properties error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error retrieving properties" });
+  }
+}
+
+  export { createProperty, deleteProperty,updateProperty,getAllProperties,getPropertyById,getUserProperties}

@@ -59,11 +59,11 @@ export const createProperty = async (propertyData) => {
 // Get all properties
 export const getAllProperties = async () => {
   try {
-    const response = await axiosInstance.get(`${API_BASE_URL}`);
+    const response = await axiosInstance.get("/"); 
     return response.data;
   } catch (error) {
     console.error(
-      "Error fetching properties:",
+      "Error fetching user properties:",
       error.response?.data || error.message
     );
     throw error;

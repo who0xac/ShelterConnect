@@ -1,12 +1,19 @@
-import express from 'express';
-import { createProperty,updateProperty,deleteProperty,getAllProperties,getPropertyById } from '../../controllers/Property/index.js';
-
+import express from "express";
+import {
+  createProperty,
+  updateProperty,
+  deleteProperty,
+  getAllProperties,
+  getPropertyById,
+  getUserProperties,
+} from "../../controllers/Property/index.js";
+import authMiddleware from "../../middleware/authMiddleware.js"; 
 const property = express.Router();
 
-property.get('/', getAllProperties);
-property.get('/:id', getPropertyById);
-property.put('/:id', updateProperty);
-property.delete('/:id', deleteProperty);
-property.post('/', createProperty);
+property.get("/", authMiddleware, getUserProperties);
+property.get("/:id", authMiddleware, getPropertyById); 
+property.put("/:id", authMiddleware, updateProperty); 
+property.delete("/:id", authMiddleware, deleteProperty); 
+property.post("/", authMiddleware, createProperty); 
 
 export default property;

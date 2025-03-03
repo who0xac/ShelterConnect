@@ -1,13 +1,21 @@
-import express from 'express';
-import {createStaff,getAllStaff,getStaffById,updateStaff,deleteStaff} from '../../controllers/Staff/index.js';
-import authMiddleware from '../../middleware/authMiddleware.js';
+import express from "express";
+import {
+  createStaff,
+  getAllStaff,
+  getStaffById,
+  updateStaff,
+  deleteStaff,
+  getMyStaff,
+} from "../../controllers/Staff/index.js";
+import authMiddleware from "../../middleware/authMiddleware.js";
 
 const staff = express.Router();
 
-staff.get("/", getAllStaff);
-staff.get("/:id",  getStaffById);
-staff.put("/:id",  updateStaff);
-staff.delete("/:id",  deleteStaff);
+
+staff.get("/", authMiddleware, getMyStaff);
 staff.post("/", authMiddleware, createStaff);
+staff.get("/:id", authMiddleware, getStaffById);
+staff.put("/:id", authMiddleware, updateStaff);
+staff.delete("/:id", authMiddleware, deleteStaff);
 
 export default staff;

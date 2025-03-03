@@ -86,7 +86,26 @@ async function getStaffById(req, res) {
     });
   }
 }
+async function getMyStaff(req, res) {
+  try {
+    // Get user ID from the authenticated request
+    const userId = req.user.id;
 
+    // Get staff members added by this user
+    const staffMembers = await StaffModel.getStaffByCreator(userId);
+
+    res.status(200).json({
+      success: true,
+      data: staffMembers,
+    });
+  } catch (error) {
+    console.error("Get my staff error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving your staff members",
+    });
+  }
+}
 // Get All Staff
 async function getAllStaff(req, res) {
   try {
@@ -162,4 +181,4 @@ async function deleteStaff(req, res) {
   }
 }
 
-export { createStaff, getStaffById, getAllStaff, updateStaff, deleteStaff };
+export { createStaff, getStaffById, getAllStaff, updateStaff, deleteStaff ,getMyStaff};
