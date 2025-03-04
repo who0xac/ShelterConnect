@@ -466,7 +466,7 @@ const Tenants = () => {
                     </TableCell>
                     <TableCell sx={{ py: 2 }}>
                       <Chip
-                        label={row.status === 1 ? "Yes" : "No"}
+                        label={row.status === 1 ? "Active" : "InActive"}
                         size="small"
                         color={row.status === 1 ? "success" : "error"}
                         sx={{
@@ -627,4 +627,4 @@ const Tenants = () => {
   );
 };
 
-export default Tenants;  
+export default Tenants;

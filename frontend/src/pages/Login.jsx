@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import { Box, TextField, Button, Typography, IconButton } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Registration from "../components/Registartion";
 import { loginUser } from "../api/userApi.js";
-import "../assets/css/Login.css";
 import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = () => {
@@ -17,7 +16,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Effect to disable scrolling when registration is open
+  // Disable scrolling when registration is open
   useEffect(() => {
     document.body.style.overflow = showRegistration ? "hidden" : "auto";
     return () => {
@@ -32,6 +31,7 @@ const LoginPage = () => {
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.token);
 
+      console.log("Displaying toast...");
       toast.success("Login Successful!", {
         position: "top-right",
         autoClose: 2000,
@@ -46,6 +46,7 @@ const LoginPage = () => {
       }, 2000);
     } catch (err) {
       console.error("Login error:", err);
+      console.log("Displaying error toast...");
       toast.error(err.message, {
         position: "top-right",
         autoClose: 3000,
@@ -54,7 +55,6 @@ const LoginPage = () => {
         pauseOnHover: true,
         draggable: true,
       });
-
       setError(err.message);
     }
   };
@@ -65,37 +65,54 @@ const LoginPage = () => {
         margin: 0,
         padding: 0,
         minHeight: "100vh",
-        position: "relative",
+        width: "100vw",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         "&::before": {
           content: '""',
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
-          bgcolor: "rgba(0, 0, 255, 0.2)",
-          zIndex: 1,
+          width: "100vw",
+          height: "100vh",
+          backgroundImage: 'url("../src/assets/images/resident.jpg")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          zIndex: 0,
+          filter: "brightness(0.6) saturate(1.2)",
         },
         "&::after": {
           content: '""',
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundImage: 'url("../src/assets/images/resident.jpg")',
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          zIndex: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          zIndex: 1,
         },
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
       }}
     >
-      <ToastContainer />
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
+      {/* Rest of the code */}
       <Box
         sx={{
           display: "flex",
@@ -103,14 +120,19 @@ const LoginPage = () => {
           maxWidth: "900px",
           minHeight: "500px",
           bgcolor: "white",
-          borderRadius: "10px",
+          borderRadius: "16px",
           overflow: "hidden",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          boxShadow: "0 12px 24px rgba(0, 0, 0, 0.3)",
           zIndex: 2,
           mx: 2,
           mt: 2,
           mb: 4,
           maxHeight: "700px",
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+          "&:hover": {
+            transform: "translateY(-5px)",
+            boxShadow: "0 16px 32px rgba(0, 0, 0, 0.4)",
+          },
         }}
       >
         {/* Left Section */}
@@ -122,6 +144,7 @@ const LoginPage = () => {
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "column",
+            p: 4,
           }}
         >
           <Box
@@ -129,11 +152,39 @@ const LoginPage = () => {
             src="../src/assets/icons/shelterconnect-removebg.png"
             alt="ShelterConnect Logo"
             sx={{
-              width: "400px",
-              height: "350px",
+              width: "100%",
+              maxWidth: "400px",
+              height: "auto",
               filter: "invert(1) brightness(2) contrast(2)",
+              mb: 2,
+              animation: "float 4s ease-in-out infinite",
+              "@keyframes float": {
+                "0%, 100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-10px)" },
+              },
             }}
           />
+          <Typography
+            variant="h5"
+            sx={{
+              color: "white",
+              fontWeight: 600,
+              textAlign: "center",
+              mt: 2,
+            }}
+          >
+            Welcome Back!
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: "rgba(255, 255, 255, 0.8)",
+              textAlign: "center",
+              mt: 1,
+            }}
+          >
+            Sign in to continue to your account.
+          </Typography>
         </Box>
 
         {/* Right Section */}
@@ -144,6 +195,7 @@ const LoginPage = () => {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
+            bgcolor: "background.paper",
           }}
         >
           {showRegistration ? (
@@ -169,7 +221,16 @@ const LoginPage = () => {
               </Box>
 
               {error && (
-                <Typography sx={{ color: "red", mb: 2, textAlign: "center" }}>
+                <Typography
+                  sx={{
+                    color: "error.main",
+                    mb: 2,
+                    textAlign: "center",
+                    backgroundColor: "rgba(255, 0, 0, 0.1)",
+                    padding: "8px",
+                    borderRadius: "4px",
+                  }}
+                >
                   {error}
                 </Typography>
               )}
@@ -177,55 +238,55 @@ const LoginPage = () => {
               <TextField
                 fullWidth
                 label="Email"
-                variant="standard"
+                variant="outlined"
                 margin="normal"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 sx={{
-                  "& .MuiInput-underline:before": {
-                    borderBottomColor: "#ddd",
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                    "& fieldset": {
+                      borderColor: "#ddd",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#1a237e",
+                    },
                   },
                 }}
               />
 
-              <Box sx={{ position: "relative" }}>
+              <Box sx={{ position: "relative", mb: 2 }}>
                 <TextField
                   fullWidth
                   label="Password"
                   type={showPassword ? "text" : "password"}
-                  variant="standard"
+                  variant="outlined"
                   margin="normal"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   sx={{
-                    "& .MuiInput-underline:before": {
-                      borderBottomColor: "#ddd",
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
                     },
                   }}
                 />
-                {showPassword ? (
-                  <VisibilityOffOutlinedIcon
-                    onClick={() => setShowPassword(!showPassword)}
-                    sx={{
-                      position: "absolute",
-                      right: 0,
-                      top: "50%",
-                      color: "#666",
-                      cursor: "pointer",
-                    }}
-                  />
-                ) : (
-                  <VisibilityOutlinedIcon
-                    onClick={() => setShowPassword(!showPassword)}
-                    sx={{
-                      position: "absolute",
-                      right: 0,
-                      top: "50%",
-                      color: "#666",
-                      cursor: "pointer",
-                    }}
-                  />
-                )}
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  sx={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#666",
+                  }}
+                >
+                  {showPassword ? (
+                    <VisibilityOffOutlinedIcon />
+                  ) : (
+                    <VisibilityOutlinedIcon />
+                  )}
+                </IconButton>
               </Box>
 
               <Button
@@ -234,28 +295,36 @@ const LoginPage = () => {
                 sx={{
                   mt: 4,
                   mb: 2,
-                  bgcolor: "#2196f3",
+                  bgcolor: "#1a237e",
                   textTransform: "none",
                   py: 1.5,
                   fontSize: "1rem",
-                  "&:hover": {
-                    bgcolor: "#1976d2",
-                  },
+                  borderRadius: "8px",
                 }}
                 onClick={handleLogin}
               >
                 Login
               </Button>
 
-              <Box sx={{ textAlign: "center", mt: 2 }}>
+              {/* Links for Forgot Password and Registration */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  mt: 2,
+                }}
+              >
                 <Typography
-                  component="a"
-                  href="#"
+                  component="button"
+                  onClick={() => navigate("/forgot-password")}
                   sx={{
                     color: "#666",
                     fontSize: "0.9rem",
                     textDecoration: "none",
-                    display: "block",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
                     mb: 1,
                     "&:hover": {
                       textDecoration: "underline",

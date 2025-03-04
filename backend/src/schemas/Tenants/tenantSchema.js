@@ -13,9 +13,18 @@ const TenantSchema = new mongoose.Schema(
     dateOfAssessment: { type: Date, required: true },
 
     preferredArea: { type: String },
-    ethnicOrigin: { type: String, enum: ["Option1", "Option2"] },
-    religion: { type: String, enum: ["Option1", "Option2"] },
-    sexualOrientation: { type: String, enum: ["Option1", "Option2"] },
+    ethnicOrigin: {
+      type: String,
+      enum: [],
+    },
+    religion: {
+      type: String,
+      enum: [],
+    },
+    sexualOrientation: {
+      type: String,
+      enum: [],
+    },
 
     sourceOfIncome: { type: String },
     benefits: { type: String },
@@ -194,4 +203,3 @@ const TenantSchema = new mongoose.Schema(
 
 const Tenant = mongoose.model("Tenant", TenantSchema);
 export default Tenant;
-

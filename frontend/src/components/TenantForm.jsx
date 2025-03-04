@@ -766,8 +766,45 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                     onChange={handleChange}
                     label="Ethnic Origin"
                   >
-                    <MenuItem value="Option1">Option 1</MenuItem>
-                    <MenuItem value="Option2">Option 2</MenuItem>
+                    <MenuItem value="White: British">White: British</MenuItem>
+                    <MenuItem value="White: Irish">White: Irish</MenuItem>
+                    <MenuItem value="White: Other">White: Other</MenuItem>
+                    <MenuItem value="Mixed: White & Black Caribbean">
+                      Mixed: White & Black Caribbean
+                    </MenuItem>
+                    <MenuItem value="Mixed: White & Black African">
+                      Mixed: White & Black African
+                    </MenuItem>
+                    <MenuItem value="Mixed: White & Asian">
+                      Mixed: White & Asian
+                    </MenuItem>
+                    <MenuItem value="Mixed: Other">Mixed: Other</MenuItem>
+                    <MenuItem value="Asian/Asian British: Indian">
+                      Asian/Asian British: Indian
+                    </MenuItem>
+                    <MenuItem value="Asian/Asian British: Pakistani">
+                      Asian/Asian British: Pakistani
+                    </MenuItem>
+                    <MenuItem value="Asian/Asian British: Bangladeshi">
+                      Asian/Asian British: Bangladeshi
+                    </MenuItem>
+                    <MenuItem value="Asian/Asian British: Other">
+                      Asian/Asian British: Other
+                    </MenuItem>
+                    <MenuItem value="Black/Black British: Caribbean">
+                      Black/Black British: Caribbean
+                    </MenuItem>
+                    <MenuItem value="Black/Black British: African">
+                      Black/Black British: African
+                    </MenuItem>
+                    <MenuItem value="Black/Black British: Other">
+                      Black/Black British: Other
+                    </MenuItem>
+                    <MenuItem value="Chinese/Other Ethnic Group">
+                      Chinese/Other Ethnic Group
+                    </MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                    <MenuItem value="Refuse to say">Refuse to say</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -781,8 +818,21 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                     onChange={handleChange}
                     label="Religion"
                   >
-                    <MenuItem value="Option1">Option 1</MenuItem>
-                    <MenuItem value="Option2">Option 2</MenuItem>
+                    <MenuItem value="No religion/Atheist">
+                      No religion/Atheist
+                    </MenuItem>
+                    <MenuItem value="Muslim">Muslim</MenuItem>
+                    <MenuItem value="Christian (all denominations)">
+                      Christian (all denominations)
+                    </MenuItem>
+                    <MenuItem value="Sikh">Sikh</MenuItem>
+                    <MenuItem value="Buddhist">Buddhist</MenuItem>
+                    <MenuItem value="Hindu">Hindu</MenuItem>
+                    <MenuItem value="Jewish">Jewish</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                    <MenuItem value="Prefer not to say">
+                      Prefer not to say
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -796,8 +846,14 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                     onChange={handleChange}
                     label="Sexual Orientation"
                   >
-                    <MenuItem value="Option1">Option 1</MenuItem>
-                    <MenuItem value="Option2">Option 2</MenuItem>
+                    <MenuItem value="Heterosexual">Heterosexual</MenuItem>
+                    <MenuItem value="Homosexual">Homosexual</MenuItem>
+                    <MenuItem value="Lesbian">Lesbian</MenuItem>
+                    <MenuItem value="Transgender">Transgender</MenuItem>
+                    <MenuItem value="Bisexual">Bisexual</MenuItem>
+                    <MenuItem value="Prefer not to say">
+                      Prefer not to say
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

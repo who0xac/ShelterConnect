@@ -6,6 +6,8 @@ import RegisteredRSL from "./pages/RegisteredRSL.jsx";
 import Staff from "./pages/Staff.jsx";
 import Properties from "./pages/Properties.jsx";
 import Tenants from "./pages/Tenant.jsx";
+import Agents from "./pages/Agents.jsx";
+
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +19,7 @@ function App() {
           <Route path="/staff" element={<Staff />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/tenants" element={<Tenants />} />
+          <Route path="/agents" element={<Agents />} />
         </Route>
       </Routes>
     </BrowserRouter>
