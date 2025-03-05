@@ -22,7 +22,6 @@ import {
   TextField,
   CssBaseline,
   Chip,
-  Avatar,
   Tooltip,
   Card,
   CardContent,
@@ -195,13 +194,6 @@ const Staff = () => {
       : "#9c27b0";
   };
 
-  // Get initials for avatar
-  const getInitials = (firstName, lastName) => {
-    return `${firstName?.charAt(0) || ""}${
-      lastName?.charAt(0) || ""
-    }`.toUpperCase();
-  };
-
   return (
     <Box
       sx={{ display: "flex", backgroundColor: "#f4f6f9", minHeight: "100vh" }}
@@ -266,7 +258,6 @@ const Staff = () => {
               >
                 Staff Management
               </Typography>
-
             </Box>
             <Button
               variant="contained"
@@ -589,23 +580,8 @@ const Staff = () => {
                         sx={{
                           py: 2.5,
                           fontFamily: "Poppins, sans-serif",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1.5,
                         }}
                       >
-                        <Avatar
-                          sx={{
-                            width: 34,
-                            height: 35,
-                            bgcolor: getGenderColor(row.gender),
-                            fontSize: "0.875rem",
-                            fontWeight: 600,
-                            fontFamily: "Poppins, sans-serif",
-                          }}
-                        >
-                          {getInitials(row.firstName, row.lastName)}
-                        </Avatar>
                         {row.firstName}
                       </TableCell>
                       <TableCell

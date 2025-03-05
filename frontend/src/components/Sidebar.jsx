@@ -67,7 +67,7 @@ const navigationItems = [
   { text: "Agents", icon: <BadgeIcon />, path: "/agents" },
   { text: "Registered RSL", icon: <GroupWorkIcon />, path: "/registered-rsl" },
   { text: "Staff", icon: <SupervisorAccountIcon />, path: "/staff" },
-  { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
+  // { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
 ];
 
 const Sidebar = ({

@@ -22,7 +22,6 @@ import {
   TextField,
   CssBaseline,
   Chip,
-  Avatar,
   Tooltip,
   Card,
   CardContent,
@@ -184,13 +183,6 @@ const RegisteredRSL = () => {
     setOpenRslForm(false);
     setEditMode(false);
     setSelectedRsl(null);
-  };
-
-  // Get initials for avatar
-  const getInitials = (firstName, lastName) => {
-    return `${firstName?.charAt(0) || ""}${
-      lastName?.charAt(0) || ""
-    }`.toUpperCase();
   };
 
   return (
@@ -578,25 +570,11 @@ const RegisteredRSL = () => {
                         sx={{
                           py: 2.5,
                           fontFamily: "Poppins, sans-serif",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1.5,
                         }}
                       >
-                        <Avatar
-                          sx={{
-                            width: 40,
-                            height: 41,
-                            bgcolor: "#3f51b5",
-                            fontSize: "0.875rem",
-                            fontWeight: 600,
-                            fontFamily: "Poppins, sans-serif",
-                          }}
-                        >
-                          {getInitials(row.firstName, row.lastName)}
-                        </Avatar>
                         {row.firstName}
                       </TableCell>
+
                       <TableCell
                         sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >

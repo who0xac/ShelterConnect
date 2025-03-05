@@ -22,15 +22,24 @@ import {
   TextField,
   CssBaseline,
   Chip,
+  Avatar,
+  Tooltip,
+  Card,
+  CardContent,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
+import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
+import HomeIcon from "@mui/icons-material/Home";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import PropertyForm from "../components/PropertyForm.jsx";
-import CloseIcon from "@mui/icons-material/Close";
+import PropertyForm from "../components/PropertyForm";
 
 // Import API functions
 import { getAllProperties, deletePropertyById } from "../api/propertyApi.js";
@@ -179,39 +188,28 @@ const Properties = () => {
     setSelectedProperty(null);
   };
 
-  // Helper function to safely render user data
-  const renderAddedBy = (addedBy) => {
-    if (!addedBy) return "N/A";
-    if (typeof addedBy === "string") return addedBy;
-    if (typeof addedBy === "object") {
-      // Return the name if available, otherwise email or any identifier that makes sense
-      return addedBy.firstName && addedBy.lastName
-        ? `${addedBy.firstName} ${addedBy.lastName}`
-        : addedBy.email || addedBy._id || "Unknown";
-    }
-    return "Unknown";
+  // Get status specific color
+  const getStatusColor = (status) => {
+    return status === "Available"
+      ? "#4CAF50"
+      : status === "Rented"
+      ? "#F44336"
+      : "#9C27B0";
   };
 
-  // Format date properly
-  // Format date as MM/DD/YYYY
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "Invalid Date";
-
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      const year = date.getFullYear();
-
-      return `${month}/${day}/${year}`;
-    } catch (error) {
-      return "Invalid Date";
-    }
+  // Get initials for avatar
+  const getInitials = (name) => {
+    return name
+      ?.split(" ")
+      .map((word) => word.charAt(0))
+      .join("")
+      .toUpperCase();
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box
+      sx={{ display: "flex", backgroundColor: "#f4f6f9", minHeight: "100vh" }}
+    >
       <CssBaseline />
       <Header
         sidebarOpen={sidebarOpen}
@@ -240,363 +238,593 @@ const Properties = () => {
           mt: 8,
         }}
       >
-        {/* Header */}
-        <Box
+        {/* Header Card */}
+        <Card
+          elevation={3}
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "Poppins, sans-serif",
-              fontWeight: 600,
-              color: "#2c3e50",
-            }}
-          >
-            Property Management
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleOpenPropertyForm}
-            sx={{
-              bgcolor: "#2ecc71",
-              "&:hover": { bgcolor: "#27ae60" },
-              fontWeight: "600",
-              px: 3,
-              py: 1,
-              borderRadius: "8px",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              textTransform: "none",
-            }}
-          >
-            Add New Property
-          </Button>
-        </Box>
-
-        {/* Search and Rows per page */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <TextField
-              placeholder="Search Properties..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
-                ),
-              }}
-              sx={{
-                width: "300px",
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                },
-              }}
-            />
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Rows per page:
-              </Typography>
-              <select
-                value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  border: "1px solid #ccc",
-                  cursor: "pointer",
-                }}
-              >
-                {[5, 10, 25, 50].map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-            </Box>
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            Showing{" "}
-            {Math.min((currentPage - 1) * rowsPerPage + 1, filteredData.length)}{" "}
-            to {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-            {filteredData.length} entries
-          </Typography>
-        </Box>
-
-        {/* Table */}
-        <TableContainer
-          component={Paper}
-          sx={{
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-            borderRadius: "12px",
+            mb: 4,
+            borderRadius: "16px",
+            background: "linear-gradient(135deg, #1a237e 0%, #3f51b5 100%)",
+            boxShadow: "0 8px 16px rgba(26, 35, 126, 0.2)",
             overflow: "hidden",
           }}
         >
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                {[
-                  { key: "address", label: "Address" },
-                  { key: "city", label: "City" },
-                  { key: "pincode", label: "Pincode" },
-                  { key: "rsl", label: "RSL" },
-                  { key: "addedBy", label: "Added By" },
-                  { key: "addedAt", label: "Added At" },
-                  { key: "shared", label: "Shared" },
-                  { key: "actions", label: "Actions" },
-                ].map((column) => (
-                  <TableCell
-                    key={column.key}
-                    onClick={() =>
-                      column.key !== "actions" &&
-                      column.key !== "shared" &&
-                      handleSort(column.key)
-                    }
-                    sx={{
-                      fontWeight: 600,
-                      color: "#334155",
-                      py: 2,
-                      cursor:
-                        column.key !== "actions" && column.key !== "shared"
-                          ? "pointer"
-                          : "default",
-                      "&:hover":
-                        column.key !== "actions" && column.key !== "shared"
-                          ? { bgcolor: "rgba(0, 0, 0, 0.04)" }
-                          : {},
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {column.label}
-                      {sortConfig.key === column.key && (
-                        <Typography
-                          component="span"
-                          sx={{ ml: 1, fontSize: "0.75rem" }}
-                        >
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
-                        </Typography>
-                      )}
-                    </Box>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography color="primary">Loading...</Typography>
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    align="center"
-                    sx={{ py: 4, color: "error.main" }}
-                  >
-                    {error}
-                  </TableCell>
-                </TableRow>
-              ) : currentData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">
-                      No properties data available
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                currentData.map((row) => (
-                  <TableRow
-                    key={row._id}
-                    sx={{
-                      "&:hover": { bgcolor: "#f8fafc" },
-                      transition: "background-color 0.2s ease",
-                    }}
-                  >
-                    <TableCell sx={{ py: 2 }}>{row.address}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.city}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.postCode}</TableCell>
-                    <TableCell sx={{ py: 2 }}>{row.rslTypeGroup}</TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      {renderAddedBy(row.addedBy)}
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      {formatDate(row.createdAt)}
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Chip
-                        label={row.sharedWithOther ? "Yes" : "No"}
-                        size="small"
-                        color={row.sharedWithOther ? "success" : "info"}
-                        sx={{
-                          fontWeight: 500,
-                          minWidth: "60px",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEditClick(row)}
-                        sx={{
-                          "&:hover": { bgcolor: "rgba(25, 118, 210, 0.04)" },
-                          transition: "background-color 0.2s",
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteClick(row)}
-                        sx={{
-                          "&:hover": { bgcolor: "rgba(211, 47, 47, 0.04)" },
-                          transition: "background-color 0.2s",
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* Pagination */}
-        <Box
-          sx={{
-            mt: 2,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 2,
-            py: 2,
-          }}
-        >
-          <Button
-            variant="outlined"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          <CardContent
             sx={{
-              minWidth: "100px",
-              borderRadius: "8px",
-              textTransform: "none",
-            }}
-          >
-            Previous
-          </Button>
-          <Typography variant="body2" color="text.secondary">
-            Page {currentPage} of {totalPages}
-          </Typography>
-          <Button
-            variant="outlined"
-            disabled={currentPage === totalPages || totalPages === 0}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            sx={{
-              minWidth: "100px",
-              borderRadius: "8px",
-              textTransform: "none",
-            }}
-          >
-            Next
-          </Button>
-        </Box>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={openDeleteDialog}
-          onClose={() => setOpenDeleteDialog(false)}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">Confirm Delete</DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Are you sure you want to delete property at{" "}
-              {selectedProperty?.address}? This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Property Form Dialog */}
-        <Dialog
-          open={openPropertyForm}
-          onClose={handleClosePropertyForm}
-          maxWidth="md"
-          fullWidth
-          sx={{
-            "& .MuiDialog-paper": {
-              borderRadius: "12px",
-              padding: "16px",
-            },
-          }}
-        >
-          <DialogTitle
-            sx={{
-              fontFamily: "Poppins, sans-serif",
-              fontWeight: 600,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              p: 4,
             }}
           >
-            {editMode ? "Edit Property" : "Add New Property"}
-            <IconButton onClick={handleClosePropertyForm}>
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent>
-            <PropertyForm
-              onSuccess={handleFormSuccess}
-              onClose={handleClosePropertyForm}
-              initialData={editMode ? selectedProperty : null}
-              editMode={editMode}
-            />
-          </DialogContent>
-        </Dialog>
+            <Box>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 700,
+                  color: "white",
+                  letterSpacing: "0.5px",
+                  mb: 1,
+                }}
+              >
+                Property Management
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenPropertyForm}
+              sx={{
+                bgcolor: "white",
+                color: "#1a237e",
+                "&:hover": { bgcolor: "rgba(255, 255, 255, 0.9)" },
+                fontWeight: "600",
+                px: 3,
+                py: 1.5,
+                borderRadius: "12px",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                textTransform: "none",
+                transition: "all 0.3s ease",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Add New Property
+            </Button>
+          </CardContent>
+        </Card>
 
-        <ToastContainer
-          position="top-center"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
+        {/* Search and Rows per page */}
+        <Card
+          elevation={2}
+          sx={{
+            mb: 3,
+            borderRadius: "16px",
+            overflow: "hidden",
+          }}
+        >
+          <CardContent
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              p: 2,
+              "&:last-child": { pb: 2 },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <TextField
+                placeholder="Search Properties..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
+                  ),
+                  sx: {
+                    borderRadius: "12px",
+                    fontFamily: "Poppins, sans-serif",
+                  },
+                }}
+                sx={{
+                  width: "300px",
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                    backgroundColor: "#f1f3f4",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      backgroundColor: "#e8eaed",
+                    },
+                    "&.Mui-focused": {
+                      backgroundColor: "white",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                    },
+                  },
+                }}
+              />
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontFamily: "Poppins, sans-serif" }}
+                >
+                  Rows per page:
+                </Typography>
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "10px",
+                    border: "1px solid #e0e0e0",
+                    cursor: "pointer",
+                    backgroundColor: "#f1f3f4",
+                    fontFamily: "Poppins, sans-serif",
+                    fontSize: "14px",
+                  }}
+                >
+                  {[5, 10, 25, 50].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </Box>
+            </Box>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              Showing{" "}
+              {Math.min(
+                (currentPage - 1) * rowsPerPage + 1,
+                filteredData.length
+              )}{" "}
+              to {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
+              {filteredData.length} entries
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Table */}
+        <Card
+          elevation={3}
+          sx={{
+            borderRadius: "16px",
+            overflow: "hidden",
+            backgroundColor: "white",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
+            transition: "box-shadow 0.3s ease",
+            "&:hover": {
+              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            },
+          }}
+        >
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: "#f5f7fa" }}>
+                  {[
+                    { key: "address", label: "Address" },
+                    { key: "city", label: "City" },
+                    { key: "pincode", label: "Pincode" },
+                    { key: "rsl", label: "RSL" },
+                    { key: "addedBy", label: "Added By" },
+                    { key: "addedAt", label: "Added At" },
+                    { key: "shared", label: "Shared" },
+                    { key: "actions", label: "Actions" },
+                  ].map((column) => (
+                    <TableCell
+                      key={column.key}
+                      onClick={() =>
+                        column.key !== "actions" && handleSort(column.key)
+                      }
+                      sx={{
+                        fontFamily: "Poppins, sans-serif",
+                        fontWeight: 600,
+                        color: "#37474f",
+                        fontSize: "0.875rem",
+                        py: 2.5,
+                        cursor:
+                          column.key !== "actions" ? "pointer" : "default",
+                        "&:hover":
+                          column.key !== "actions"
+                            ? { bgcolor: "rgba(0, 0, 0, 0.04)" }
+                            : {},
+                        transition: "background-color 0.2s ease",
+                        borderBottom: "2px solid #e0e0e0",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {column.label}
+                        {sortConfig.key === column.key && (
+                          <Typography
+                            component="span"
+                            sx={{ ml: 1, fontSize: "0.75rem" }}
+                          >
+                            {sortConfig.direction === "asc" ? "↑" : "↓"}
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {currentData.map((row) => (
+                  <TableRow
+                    key={row._id}
+                    sx={{
+                      "&:hover": { bgcolor: "#f9fafc" },
+                      transition: "background-color 0.2s ease",
+                      borderLeft: "4px solid transparent",
+                      ":hover": {
+                        borderLeft: `4px solid ${getStatusColor(row.status)}`,
+                        bgcolor: "#f5f7fa",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.address || "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.city || "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.postCode || "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.rslTypeGroup || "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.addedBy
+                        ? `${row.addedBy.firstName || ""} ${
+                            row.addedBy.lastName || ""
+                          }`.trim() ||
+                          row.addedBy.email ||
+                          "N/A"
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.createdAt
+                        ? new Date(row.createdAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                    >
+                      {row.sharedWithOther ? (
+                        <Chip
+                          label="Yes"
+                          color="success"
+                          size="small"
+                          sx={{ backgroundColor: "#9c27b0	", color: "white" }}
+                        />
+                      ) : (
+                        <Chip
+                          label="No"
+                          color="error"
+                          size="small"
+                          sx={{ backgroundColor: "#ff9800", color: "white" }}
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ py: 2.5 }}>
+                      <Box sx={{ display: "flex" }}>
+                        <Tooltip title="Edit Property">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEditClick(row)}
+                            sx={{
+                              "&:hover": {
+                                bgcolor: "rgba(25, 118, 210, 0.1)",
+                                transform: "translateY(-2px)",
+                              },
+                              transition: "all 0.2s",
+                              mr: 1,
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                            }}
+                            size="small"
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete Property">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(row)}
+                            sx={{
+                              "&:hover": {
+                                bgcolor: "rgba(211, 47, 47, 0.1)",
+                                transform: "translateY(-2px)",
+                              },
+                              transition: "all 0.2s",
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                            }}
+                            size="small"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Pagination */}
+          <Card
+            elevation={2}
+            sx={{
+              mt: 3,
+              borderRadius: "16px",
+              overflow: "hidden",
+            }}
+          >
+            <CardContent
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+                py: 2,
+                "&:last-child": { pb: 2 },
+              }}
+            >
+              <Button
+                variant="outlined"
+                startIcon={<SkipPreviousIcon />}
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                sx={{
+                  minWidth: "130px",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontFamily: "Poppins, sans-serif",
+                  border: "1px solid #e0e0e0",
+                  color: currentPage === 1 ? "#bdbdbd" : "#3f51b5",
+                  "&:hover": {
+                    borderColor: "#3f51b5",
+                    backgroundColor: "rgba(63, 81, 181, 0.04)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                Previous
+              </Button>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  backgroundColor: "#f5f7fa",
+                  minWidth: "120px",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
+                >
+                  Page{" "}
+                  <span style={{ fontWeight: 700, color: "#3f51b5" }}>
+                    {currentPage}
+                  </span>{" "}
+                  of {totalPages}
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                endIcon={<SkipNextIcon />}
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                sx={{
+                  minWidth: "130px",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontFamily: "Poppins, sans-serif",
+                  border: "1px solid #e0e0e0",
+                  color:
+                    currentPage === totalPages || totalPages === 0
+                      ? "#bdbdbd"
+                      : "#3f51b5",
+                  "&:hover": {
+                    borderColor: "#3f51b5",
+                    backgroundColor: "rgba(63, 81, 181, 0.04)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                Next
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog
+            open={openDeleteDialog}
+            onClose={() => setOpenDeleteDialog(false)}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+            sx={{
+              "& .MuiDialog-paper": {
+                borderRadius: "16px",
+                padding: "16px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+              },
+            }}
+          >
+            <DialogTitle
+              id="alert-dialog-title"
+              sx={{
+                fontWeight: 700,
+                color: "#d32f2f",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                fontFamily: "Poppins, sans-serif",
+                borderBottom: "1px solid #f0f0f0",
+                pb: 2,
+              }}
+            >
+              <DeleteIcon color="error" /> Confirm Delete
+            </DialogTitle>
+            <DialogContent sx={{ mt: 2, pt: 2 }}>
+              <DialogContentText
+                id="alert-dialog-description"
+                sx={{
+                  color: "#37474f",
+                  fontWeight: 500,
+                  fontFamily: "Poppins, sans-serif",
+                }}
+              >
+                Are you sure you want to delete {selectedProperty?.name}? This
+                action cannot be undone.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, pt: 0 }}>
+              <Button
+                onClick={() => setOpenDeleteDialog(false)}
+                color="primary"
+                variant="outlined"
+                sx={{
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 600,
+                  px: 3,
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteConfirm}
+                color="error"
+                variant="contained"
+                autoFocus
+                sx={{
+                  borderRadius: "10px",
+                  boxShadow: "none",
+                  "&:hover": {
+                    boxShadow: "0 4px 8px rgba(211, 47, 47, 0.3)",
+                    backgroundColor: "#c62828",
+                  },
+                  textTransform: "none",
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 600,
+                  px: 3,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Property Form Dialog */}
+          <Dialog
+            open={openPropertyForm}
+            onClose={handleClosePropertyForm}
+            maxWidth="md"
+            fullWidth
+            sx={{
+              "& .MuiDialog-paper": {
+                borderRadius: "16px",
+                padding: "16px",
+                backgroundColor: "#f8f9fa",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+              },
+            }}
+          >
+            <DialogTitle
+              sx={{
+                fontFamily: "Poppins, sans-serif",
+                fontWeight: 700,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                color: "#1a237e",
+                borderBottom: "1px solid #e0e0e0",
+                pb: 2,
+                "& .MuiTypography-root": {
+                  fontSize: "1.5rem",
+                },
+              }}
+            >
+              {editMode ? "Edit Property" : "Add New Property"}
+              <IconButton
+                onClick={handleClosePropertyForm}
+                sx={{
+                  color: "#757575",
+                  "&:hover": {
+                    backgroundColor: "rgba(0,0,0,0.05)",
+                    transform: "rotate(90deg)",
+                  },
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ mt: 2 }}>
+              <PropertyForm
+                onSuccess={handleFormSuccess}
+                onClose={handleClosePropertyForm}
+                initialData={editMode ? selectedProperty : null}
+                editMode={editMode}
+              />
+            </DialogContent>
+          </Dialog>
+
+          <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            style={{
+              fontFamily: "Poppins, sans-serif",
+              zIndex: 9999,
+            }}
+          />
+        </Card>
       </Box>
     </Box>
   );
