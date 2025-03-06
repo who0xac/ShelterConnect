@@ -459,121 +459,160 @@ const Properties = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {currentData.map((row) => (
-                  <TableRow
-                    key={row._id}
-                    sx={{
-                      "&:hover": { bgcolor: "#f9fafc" },
-                      transition: "background-color 0.2s ease",
-                      borderLeft: "4px solid transparent",
-                      ":hover": {
-                        borderLeft: `4px solid ${getStatusColor(row.status)}`,
-                        bgcolor: "#f5f7fa",
-                      },
-                    }}
-                  >
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.address || "N/A"}
-                    </TableCell>
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.city || "N/A"}
-                    </TableCell>
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.postCode || "N/A"}
-                    </TableCell>
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.rslTypeGroup || "N/A"}
-                    </TableCell>
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.addedBy
-                        ? `${row.addedBy.firstName || ""} ${
-                            row.addedBy.lastName || ""
-                          }`.trim() ||
-                          row.addedBy.email ||
-                          "N/A"
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.createdAt
-                        ? new Date(row.createdAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell
-                      sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
-                    >
-                      {row.sharedWithOther ? (
-                        <Chip
-                          label="Yes"
-                          color="success"
+                {currentData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 2,
+                        }}
+                      >
+                        <HomeIcon sx={{ fontSize: 48, color: "#bdbdbd" }} />
+                        <Typography
+                          color="text.secondary"
+                          sx={{ fontFamily: "Poppins, sans-serif" }}
+                        >
+                          No property data available
+                        </Typography>
+                        <Button
+                          variant="outlined"
                           size="small"
-                          sx={{ backgroundColor: "#9c27b0	", color: "white" }}
-                        />
-                      ) : (
-                        <Chip
-                          label="No"
-                          color="error"
-                          size="small"
-                          sx={{ backgroundColor: "#ff9800", color: "white" }}
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell sx={{ py: 2.5 }}>
-                      <Box sx={{ display: "flex" }}>
-                        <Tooltip title="Edit Property">
-                          <IconButton
-                            color="primary"
-                            onClick={() => handleEditClick(row)}
-                            sx={{
-                              "&:hover": {
-                                bgcolor: "rgba(25, 118, 210, 0.1)",
-                                transform: "translateY(-2px)",
-                              },
-                              transition: "all 0.2s",
-                              mr: 1,
-                              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                            }}
-                            size="small"
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete Property">
-                          <IconButton
-                            color="error"
-                            onClick={() => handleDeleteClick(row)}
-                            sx={{
-                              "&:hover": {
-                                bgcolor: "rgba(211, 47, 47, 0.1)",
-                                transform: "translateY(-2px)",
-                              },
-                              transition: "all 0.2s",
-                              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                            }}
-                            size="small"
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                          startIcon={<AddIcon />}
+                          onClick={handleOpenPropertyForm}
+                          sx={{
+                            mt: 1,
+                            borderRadius: "8px",
+                            textTransform: "none",
+                          }}
+                        >
+                          Add Property
+                        </Button>
                       </Box>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  currentData.map((row) => (
+                    <TableRow
+                      key={row._id}
+                      sx={{
+                        "&:hover": { bgcolor: "#f9fafc" },
+                        transition: "background-color 0.2s ease",
+                        borderLeft: "4px solid transparent",
+                        ":hover": {
+                          borderLeft: `4px solid ${getStatusColor(row.status)}`,
+                          bgcolor: "#f5f7fa",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.address || "N/A"}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.city || "N/A"}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.postCode || "N/A"}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.rslTypeGroup || "N/A"}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.addedBy
+                          ? `${row.addedBy.firstName || ""} ${
+                              row.addedBy.lastName || ""
+                            }`.trim() ||
+                            row.addedBy.email ||
+                            "N/A"
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.createdAt
+                          ? new Date(row.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
+                        {row.sharedWithOther ? (
+                          <Chip
+                            label="Yes"
+                            color="success"
+                            size="small"
+                            sx={{ backgroundColor: "#9c27b0", color: "white" }}
+                          />
+                        ) : (
+                          <Chip
+                            label="No"
+                            color="error"
+                            size="small"
+                            sx={{ backgroundColor: "#ff9800", color: "white" }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell sx={{ py: 2.5 }}>
+                        <Box sx={{ display: "flex" }}>
+                          <Tooltip title="Edit Property">
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleEditClick(row)}
+                              sx={{
+                                "&:hover": {
+                                  bgcolor: "rgba(25, 118, 210, 0.1)",
+                                  transform: "translateY(-2px)",
+                                },
+                                transition: "all 0.2s",
+                                mr: 1,
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                              }}
+                              size="small"
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete Property">
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDeleteClick(row)}
+                              sx={{
+                                "&:hover": {
+                                  bgcolor: "rgba(211, 47, 47, 0.1)",
+                                  transform: "translateY(-2px)",
+                                },
+                                transition: "all 0.2s",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                              }}
+                              size="small"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>

@@ -1,58 +1,77 @@
 import PropertyModel from "../../models/Properties/propertiesModel.js";
 import UserModel from "../../models/Users/userModel.js";
-
+import StaffModel from "../../models/Staff/staffModel.js";
 
   // Create Property
-  async function createProperty(req, res) {
-    try {
-      const { addedBy, ...propertyData } = req.body;
-      if (!addedBy) {
-        return res
-          .status(400)
-          .json({ success: false, message: "AddedBy field is required." });
-      }
+ async function createProperty(req, res) {
+   try {
+     const { addedBy, ...propertyData } = req.body;
 
-      const addedByUser = await UserModel.findById(addedBy);
-      if (!addedByUser) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "User not found for the given addedBy ID.",
-          });
-      }
+     if (!addedBy) {
+       return res.status(400).json({
+         success: false,
+         message: "AddedBy field is required.",
+       });
+     }
 
-      const property = await PropertyModel.createProperty({
-        addedBy,
-        ...propertyData,
-      });
-      res
-        .status(201)
-        .json({
-          success: true,
-          message: "Property created successfully",
-          data: property,
-        });
-    } catch (error) {
-      console.error("Error creating property:", error);
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Something went wrong while creating property.",
-        });
-    }
-  }
+     // Check if addedBy is in UserModel or StaffModel
+     let addedByUser = await UserModel.findById(addedBy);
+     if (!addedByUser) {
+       addedByUser = await StaffModel.findStaffById(addedBy);
+     }
 
+     // If addedByUser is still null, return error
+     if (!addedByUser) {
+       return res.status(404).json({
+         success: false,
+         message: "User or Staff not found for the given addedBy ID.",
+       });
+     }
+
+     // Create Property
+     const property = await PropertyModel.createProperty({
+       addedBy,
+       ...propertyData,
+     });
+
+     res.status(201).json({
+       success: true,
+       message: "Property created successfully",
+       data: property,
+     });
+   } catch (error) {
+     console.error("Error creating property:", error);
+     res.status(500).json({
+       success: false,
+       message: "Something went wrong while creating property.",
+     });
+   }
+ }
   // Get Property by ID
   async function getPropertyById(req, res) {
     try {
-      const property = await PropertyModel.findPropertyById(req.params.id);
+      const propertyId = req.params.id;
+      const userId = req.user.id; // Extracted from the authenticated request
+      const user = await UserModel.findById(userId); // Fetch the user
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      // Fetch property with filtered RSLs
+      const property = await PropertyModel.getPropertyWithFilteredRSLs(
+        propertyId,
+        user
+      );
+
       if (!property) {
         return res
           .status(404)
           .json({ success: false, message: "Property not found" });
       }
+
       res.status(200).json({ success: true, data: property });
     } catch (error) {
       console.error("Get property by ID error:", error);
@@ -62,18 +81,55 @@ import UserModel from "../../models/Users/userModel.js";
     }
   }
 
+
   // Get All Properties
-  async function getAllProperties(req, res) {
-    try {
-      const properties = await PropertyModel.getAllProperties();
-      res.status(200).json({ success: true, data: properties });
-    } catch (error) {
-      console.error("Get all properties error:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Error retrieving properties" });
-    }
-  }
+ async function getAllProperties(req, res) {
+   try {
+     const userId = req.user.id; // Extracted from the authenticated request
+     const user = await UserModel.findById(userId); // Fetch the user
+
+     if (!user) {
+       return res
+         .status(404)
+         .json({ success: false, message: "User not found" });
+     }
+
+     let properties = await PropertyModel.getAllProperties();
+
+     // Filter RSLs for Role 2 (User) and Role 3 (Staff)
+     properties = await Promise.all(
+       properties.map(async (property) => {
+         if (user.role === 2) {
+           // Role 2: Show only RSLs assigned to the User
+           property.rsls = property.rsls.filter((rsl) =>
+             user.rsls.includes(rsl._id)
+           );
+         } else if (user.role === 3) {
+           // Role 3: Check who added the staff
+           if (user.addedBy.role === 1) {
+             // Added by Role 1 (Admin): Show all RSLs
+             return property;
+           } else if (user.addedBy.role === 2) {
+             // Added by Role 2 (User): Filter RSLs
+             const addedByUser = await UserModel.findById(user.addedBy);
+             property.rsls = property.rsls.filter((rsl) =>
+               addedByUser.rsls.includes(rsl._id)
+             );
+           }
+         }
+         return property;
+       })
+     );
+
+     res.status(200).json({ success: true, data: properties });
+   } catch (error) {
+     console.error("Get all properties error:", error);
+     res
+       .status(500)
+       .json({ success: false, message: "Error retrieving properties" });
+   }
+ }
+
 
   // Update Property
   async function updateProperty(req, res) {
@@ -126,8 +182,41 @@ import UserModel from "../../models/Users/userModel.js";
 async function getUserProperties(req, res) {
   try {
     const userId = req.user.id; // Extracted from the authenticated request
+    const user = await UserModel.findById(userId); // Fetch the user
 
-    const properties = await PropertyModel.getPropertiesByUser(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    let properties = await PropertyModel.getPropertiesByUser(userId);
+
+    // Filter RSLs for Role 2 (User) and Role 3 (Staff)
+    properties = await Promise.all(
+      properties.map(async (property) => {
+        if (user.role === 2) {
+          // Role 2: Show only RSLs assigned to the User
+          property.rsls = property.rsls.filter((rsl) =>
+            user.rsls.includes(rsl._id)
+          );
+        } else if (user.role === 3) {
+          // Role 3: Check who added the staff
+          if (user.addedBy.role === 1) {
+            // Added by Role 1 (Admin): Show all RSLs
+            return property;
+          } else if (user.addedBy.role === 2) {
+            // Added by Role 2 (User): Filter RSLs
+            const addedByUser = await UserModel.findById(user.addedBy);
+            property.rsls = property.rsls.filter((rsl) =>
+              addedByUser.rsls.includes(rsl._id)
+            );
+          }
+        }
+        return property;
+      })
+    );
+
     res.status(200).json({ success: true, data: properties });
   } catch (error) {
     console.error("Get user properties error:", error);
@@ -136,5 +225,6 @@ async function getUserProperties(req, res) {
       .json({ success: false, message: "Error retrieving properties" });
   }
 }
+
 
   export { createProperty, deleteProperty,updateProperty,getAllProperties,getPropertyById,getUserProperties}

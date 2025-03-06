@@ -29,6 +29,7 @@ import {
   Grid,
   Button,
 } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import EditIcon from "@mui/icons-material/Edit";
@@ -40,10 +41,10 @@ import HomeIcon from "@mui/icons-material/Home";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import AgentForm from "../components/AgentForm";
-
-// Import API functions
+import { getCurrentUser } from "../api/userApi";
 import { getAllAgents, updateUserById } from "../api/userApi.js";
-import { getCurrentUser } from "../api/userApi.js";
+import { jwtDecode } from "jwt-decode";
+
 
 const drawerWidth = 240;
 
@@ -56,9 +57,10 @@ const Agents = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openAgentForm, setOpenAgentForm] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [selectedAgent, setSelectedAgent] = useState({ _id: null }); 
   const [editMode, setEditMode] = useState(false);
   const [expandedAgent, setExpandedAgent] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   // Table control states
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,6 +71,26 @@ const Agents = () => {
   useEffect(() => {
     fetchAgentsData();
   }, []);
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          navigate("/");
+          return;
+        }
+        const decoded = jwtDecode(token);
+        const id = decoded.id; // Extract userId from the decoded token
+        setUserId(id); // Set userId in state
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+        toast.error("Failed to fetch user ID");
+      }
+    };
+
+    fetchUserId();
+  }, [navigate]);
 
   useEffect(() => {
     getCurrentUser(navigate, setUserName);
@@ -143,12 +165,15 @@ const Agents = () => {
       toast.error("Error during logout. Please try again.");
     }
   };
-
-  const handleEditClick = (agent) => {
-    setSelectedAgent(agent);
-    setEditMode(true);
-    setOpenAgentForm(true);
-  };
+const handleEditClick = (agent) => {
+  if (!agent || !agent._id) {
+    toast.error("Invalid agent data");
+    return;
+  }
+  setSelectedAgent(agent);
+  setEditMode(true);
+  setOpenAgentForm(true);
+};
 
   const handleToggleStatus = async (agent) => {
     try {
@@ -172,7 +197,7 @@ const Agents = () => {
   const handleCloseAgentForm = () => {
     setOpenAgentForm(false);
     setEditMode(false);
-    setSelectedAgent(null);
+    setSelectedAgent({ _id: null });
   };
 
   const handleFormSuccess = () => {
@@ -948,12 +973,20 @@ const Agents = () => {
             </IconButton>
           </DialogTitle>
           <DialogContent sx={{ mt: 2 }}>
-            <AgentForm
-              onSuccess={handleFormSuccess}
-              onClose={handleCloseAgentForm}
-              initialData={editMode ? selectedAgent : null}
-              editMode={editMode}
-            />
+            {selectedAgent?._id ? (
+              <AgentForm
+                onSuccess={handleFormSuccess}
+                onClose={handleCloseAgentForm}
+                initialData={editMode ? selectedAgent : null}
+                editMode={editMode}
+                userId={selectedAgent._id}
+              />
+            ) : (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <CircularProgress />
+                <Typography sx={{ mt: 2 }}>Loading agent data...</Typography>
+              </Box>
+            )}
           </DialogContent>
         </Dialog>
 

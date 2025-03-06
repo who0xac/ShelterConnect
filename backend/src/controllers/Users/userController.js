@@ -10,14 +10,12 @@ dotenv.config();
 async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "Email and password are required" });
     }
 
-    // Try finding the user in both User and Staff collections
     let user = await UserModel.findUserByEmail(email);
     let userType = "user";
 
@@ -26,25 +24,27 @@ async function loginUser(req, res) {
       userType = "staff";
     }
 
-    // If user is not found or is deleted
     if (!user || user.isDeleted) {
-      return res.status(404).json({ message: "User does not exist" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT token
+    const expiresIn = "2h";
+    const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
+
     const token = jwt.sign(
       { id: user._id, role: user.role, userType },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn }
     );
 
-    res.status(200).json({ message: "Login successful", token, userType });
+    res
+      .status(200)
+      .json({ message: "Login successful", token, userType, expiresAt });
   } catch (error) {
     console.error("Login error:", error);
     res
@@ -160,13 +160,69 @@ async function getAllAgents(req, res) {
     res.status(200).json({ success: true, data: agents });
   } catch (error) {
     console.error("Get all agents error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch agents",
-        error: error.message,
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch agents",
+      error: error.message,
+    });
+  }
+}
+
+// Add or Update RSLs for a user
+async function updateUserRSLs(req, res) {
+  try {
+    const { userId } = req.params;
+    const { rslIds } = req.body;
+
+    if (!rslIds || !Array.isArray(rslIds)) {
+      return res.status(400).json({
+        success: false, // Add success flag
+        message: "Invalid RSL IDs provided",
       });
+    }
+
+    const updatedUser = await UserModel.updateUserRSLs(userId, rslIds);
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false, // Add success flag
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true, // Add success flag
+      message: "RSLs updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("Update RSLs error:", error);
+    res.status(500).json({
+      success: false, // Add success flag
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+}
+
+// Get RSLs for a user
+async function getUserRSLs(req, res) {
+  try {
+    const { userId } = req.params;
+    console.log("User ID received:", userId); // Debug log
+    const userRSLs = await UserModel.getUserRSLs(userId);
+    if (!userRSLs) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({
+      message: "User RSLs fetched successfully",
+      data: userRSLs,
+    });
+  } catch (error) {
+    console.error("Get user RSLs error:", error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 }
 
@@ -179,4 +235,6 @@ export {
   getAllUsers,
   updateUser,
   getAllAgents,
+  updateUserRSLs,
+  getUserRSLs,
 };

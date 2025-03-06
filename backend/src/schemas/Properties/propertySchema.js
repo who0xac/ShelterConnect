@@ -7,7 +7,18 @@ const PropertySchema = new mongoose.Schema(
       enum: [" RSL/Housing provider", "Tenant"],
       required: true,
     },
-    rslTypeGroup: { type: String, required: true },
+    rslTypeGroup: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RSL",
+      required: true,
+    },
+    rsls: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RSL", 
+        default: [],
+      },
+    ],
     address: { type: String, required: true },
     noOfBedrooms: { type: Number, required: true },
     area: { type: String, required: true },

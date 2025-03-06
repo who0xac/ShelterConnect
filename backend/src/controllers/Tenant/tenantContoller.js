@@ -7,22 +7,18 @@ async function createTenant(req, res) {
   try {
     const { addedBy, property, ...tenantData } = req.body;
     if (!addedBy || !property) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "AddedBy and Property fields are required.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "AddedBy and Property fields are required.",
+      });
     }
 
     const addedByUser = await UserModel.findById(addedBy);
     if (!addedByUser) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "User not found for the given addedBy ID.",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "User not found for the given addedBy ID.",
+      });
     }
 
     const propertyExists = await PropertyModel.findPropertyById(property);
@@ -37,21 +33,17 @@ async function createTenant(req, res) {
       property,
       ...tenantData,
     });
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Tenant created successfully",
-        data: tenant,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Tenant created successfully",
+      data: tenant,
+    });
   } catch (error) {
     console.error("Error creating tenant:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Something went wrong while creating tenant.",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while creating tenant.",
+    });
   }
 }
 
@@ -98,13 +90,11 @@ async function updateTenant(req, res) {
         .status(404)
         .json({ success: false, message: "Tenant not found" });
     }
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Tenant updated successfully",
-        data: updatedTenant,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Tenant updated successfully",
+      data: updatedTenant,
+    });
   } catch (error) {
     console.error("Update tenant error:", error);
     res.status(500).json({ success: false, message: "Error updating tenant" });

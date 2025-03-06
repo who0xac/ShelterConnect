@@ -3,7 +3,6 @@ import {
   createProperty,
   updateProperty,
   deleteProperty,
-  getAllProperties,
   getPropertyById,
   getUserProperties,
 } from "../../controllers/Property/index.js";

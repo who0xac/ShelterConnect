@@ -25,40 +25,83 @@ const LoginPage = () => {
   }, [showRegistration]);
 
   // Handle Login
-  const handleLogin = async () => {
-    setError("");
-    try {
-      const data = await loginUser(email, password);
-      localStorage.setItem("token", data.token);
+ const handleLogin = async () => {
+   setError(""); // Clear previous errors
 
-      console.log("Displaying toast...");
-      toast.success("Login Successful!", {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+   try {
+     const data = await loginUser(email, password);
 
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
-    } catch (err) {
-      console.error("Login error:", err);
-      console.log("Displaying error toast...");
-      toast.error(err.message, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      setError(err.message);
+     // Store token and expiration time in local storage
+     localStorage.setItem("token", data.token);
+
+     const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
+     localStorage.setItem("expiresAt", expiresAt);
+
+     // Show success toast
+     toast.success("Login Successful!", {
+       position: "top-right",
+       autoClose: 2000,
+     });
+
+     // Set auto logout only after successful login
+     autoLogout(expiresAt);
+
+     // Redirect after a short delay
+     setTimeout(() => navigate("/dashboard"), 2000);
+   } catch (error) {
+     console.error("Login error:", error);
+
+     // Show only one toast for errors
+     toast.error(error.message || "Invalid credentials", {
+       position: "top-right",
+       autoClose: 3000,
+     });
+
+     // Set error state for UI feedback
+     setError(error.message || "Invalid email or password");
+   }
+ };
+
+
+  // Auto Logout Function
+ const autoLogout = (expiresAt) => {
+   const timeout = expiresAt - Date.now(); // Get remaining time
+
+   if (timeout > 0) {
+     console.log(`Auto logout in ${timeout / 1000} seconds`); // Debugging
+
+     setTimeout(() => {
+       // Remove token and show toast message
+       localStorage.removeItem("token");
+       localStorage.removeItem("expiresAt");
+
+       console.log("Session expired! Showing toast..."); // Debugging
+
+       toast.info("Session expired, logging out...", {
+         position: "top-right",
+         autoClose: 3000, // Show toast for 3 seconds
+       });
+
+       // Redirect after 3 seconds
+       setTimeout(() => {
+         console.log("Redirecting to login page..."); // Debugging
+         window.location.href = "/";
+       }, 3000);
+     }, timeout);
+   } else {
+     console.log("Token already expired!");
+   }
+ };
+
+
+
+  // Check token expiration on page load
+  useEffect(() => {
+    const expiresAt = localStorage.getItem("expiresAt");
+    if (expiresAt) {
+      autoLogout(parseInt(expiresAt));
     }
-  };
-
+  }, []);
   return (
     <Box
       sx={{

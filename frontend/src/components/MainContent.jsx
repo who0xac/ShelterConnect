@@ -215,7 +215,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
               color: "success",
             },
             {
-              label: "Staff Members",
+              label: "Active Staff Members",
               value: data.staff,
               icon: (
                 <StaffIcon
@@ -226,7 +226,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
               color: "warning",
             },
             {
-              label: "Registered Socail Landlords",
+              label: "Registered Social Landlords",
               value: data.rsls,
               icon: (
                 <ReportIcon
@@ -246,7 +246,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           cards: [
             ...commonCards,
             {
-              label: "Staff Members",
+              label: "Active Staff Members",
               value: data.staff,
               icon: (
                 <StaffIcon
@@ -337,75 +337,98 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         </Alert>
       )}
 
-      <Grid container spacing={4} sx={{ px: 4 }}>
-        {cards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-            <Card sx={cardStyles(card.color)}>
-              <CardContent>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    mb: 2,
-                    gap: 2,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      p: 2,
-                      bgcolor: alpha(theme.palette[card.color].main, 0.1),
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {card.icon}
-                  </Box>
-                  {loading ? (
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Skeleton
-                        variant="rounded"
-                        width="100%"
-                        height={40}
-                        sx={{ borderRadius: 2 }}
-                      />
-                      <Skeleton
-                        variant="text"
-                        width="60%"
-                        sx={{ fontSize: "1rem", mt: 1 }}
-                      />
-                    </Box>
-                  ) : (
-                    <Box>
-                      <Typography
-                        variant="h3"
-                        component="div"
-                        sx={{
-                          fontWeight: 700,
-                          color: theme.palette[card.color].dark,
-                        }}
-                      >
-                        {card.value}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
+     <Grid container spacing={4} sx={{ px: { xs: 0, sm: 4 } }}>
+  {cards.map((card, index) => (
+    <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+      <Card
+        sx={{
+          minWidth: 250, // Set a minimum width for the card
+          height: "100%", // Ensure all cards have the same height
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          background: `linear-gradient(135deg, ${alpha(
+            theme.palette[card.color].main,
+            0.1
+          )} 0%, ${alpha(theme.palette[card.color].main, 0.05)} 100%)`,
+          border: `1px solid ${alpha(theme.palette[card.color].main, 0.2)}`,
+          boxShadow: theme.shadows[2],
+          borderRadius: "16px",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          "&:hover": {
+            transform: "translateY(-5px)",
+            boxShadow: theme.shadows[6],
+            borderColor: alpha(theme.palette[card.color].main, 0.4),
+          },
+        }}
+      >
+        <CardContent>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              mb: 2,
+              gap: 2,
+            }}
+          >
+            <Box
+              sx={{
+                p: 2,
+                bgcolor: alpha(theme.palette[card.color].main, 0.1),
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {card.icon}
+            </Box>
+            {loading ? (
+              <Box sx={{ flexGrow: 1 }}>
+                <Skeleton
+                  variant="rounded"
+                  width="100%"
+                  height={40}
+                  sx={{ borderRadius: 2 }}
+                />
+                <Skeleton
+                  variant="text"
+                  width="60%"
+                  sx={{ fontSize: "1rem", mt: 1 }}
+                />
+              </Box>
+            ) : (
+              <Box>
                 <Typography
-                  variant="h6"
+                  variant="h3"
+                  component="div"
                   sx={{
-                    color: theme.palette.text.secondary,
-                    fontWeight: 500,
-                    pl: 1,
+                    fontWeight: 700,
+                    color: theme.palette[card.color].dark,
+                    fontSize: { xs: "1.5rem", sm: "2rem" },
                   }}
                 >
-                  {card.label}
+                  {card.value}
                 </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+              </Box>
+            )}
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              color: theme.palette.text.secondary,
+              fontWeight: 500,
+              pl: 1,
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+            }}
+          >
+            {card.label}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Grid>
+  ))}
+</Grid>
     </Box>
   );
 };

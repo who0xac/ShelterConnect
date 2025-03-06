@@ -1,22 +1,48 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = "http://localhost:3000/api/users";
 const API_BASE_URL2 = "http://localhost:3000/api/staff";
 
+// Create Axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
 
-// User Login API
+// Add Axios Interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.log("Interceptor triggered", error.response?.status); // Debugging
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("expiresAt");
+      toast.info("Session expired, logging out...", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
+
+
+
+// Use the Axios instance for API calls
 export const loginUser = async (email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, {
-      email,
-      password,
-    });
+    const response = await api.post(`/login`, { email, password });
     return response.data;
   } catch (error) {
-    throw error.response?.data?.message || "Login failed";
+    const errorMessage = error.response?.data?.message || "Login failed";
+    throw new Error(errorMessage); // Only throw, no toast here
   }
 };
+
+
+
 
 // User Registration API
 export const registerUser = async (userData) => {
@@ -28,19 +54,32 @@ export const registerUser = async (userData) => {
   }
 };
 
-// Get all users
 export const getAllUsers = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}`);
+    const response = await api.get("/");
     return response.data;
   } catch (error) {
     console.error(
       "Error fetching users:",
       error.response?.data || error.message
     );
-    throw error;
+    return null;
   }
 };
+
+export const getAllAgents = async () => {
+  try {
+    const response = await api.get("/agents");
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching agents:",
+      error.response?.data || error.message
+    );
+    return null;
+  }
+};
+
 
 // Get a single user by ID
 export const getUserById = async (userId) => {
@@ -87,7 +126,6 @@ export const deleteUserById = async (userId) => {
 // Get current user
 export const getCurrentUser = async (navigate, setUserName) => {
   try {
-    // Get token from localStorage
     const token = localStorage.getItem("token");
     if (!token) {
       console.error("No token found");
@@ -99,42 +137,67 @@ export const getCurrentUser = async (navigate, setUserName) => {
     const decoded = jwtDecode(token);
     const userId = decoded.id;
 
-    // Try fetching from User API
-    let response = await fetch(`${API_BASE_URL}/${userId}`);
-    let result = await response.json();
+    // Set authorization headers
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
 
-    // If not found in Users, try Staff API
-    if (!response.ok || !result.data) {
-      response = await fetch(`${API_BASE_URL2}/${userId}`);
-      result = await response.json();
+    let response;
+
+    try {
+      // First, try fetching from /api/users/:id
+      response = await api.get(`/${userId}`, config);
+    } catch (error) {
+      console.warn("User not found in /api/users, checking /api/staff...");
+
+      try {
+        // If user is not found, try fetching from /api/staff/:id
+        response = await axios.get(`${API_BASE_URL2}/${userId}`, config);
+      } catch (staffError) {
+        console.error("User not found in both APIs.");
+        navigate("/");
+        return;
+      }
     }
 
-    // If user is still not found, navigate to login
-    if (!result.data) {
-      console.error("User data is missing in response");
+    const userData = response.data?.data;
+    if (!userData) {
+      console.error("User data is empty.");
       navigate("/");
       return;
     }
 
-    // Set the user name
-    setUserName(`${result.data.firstName} ${result.data.lastName}`);
+    // Set user name
+    setUserName(`${userData.firstName} ${userData.lastName}`);
+    return userId;
   } catch (error) {
     console.error("Error fetching user data:", error);
     navigate("/");
   }
 };
 
-export const getAllAgents = async () => {
+// Add these methods to your userApi file
+
+// Get RSLs for a user
+export const getUserRSLs = async (userId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/agents`);
+    const response = await api.get(`/${userId}/rsls`);
     return response.data;
   } catch (error) {
-    console.error(
-      "Error fetching agents:",
-      error.response?.data || error.message
-    );
+    console.error("Error fetching user RSLs:", error.response?.data || error.message);
     throw error;
   }
 };
 
-
+// Update RSLs for a user
+export const updateUserRSLs = async (userId, rslIds) => {
+  try {
+    const response = await api.put(`/${userId}/rsls`, { rslIds });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user RSLs:", error.response?.data || error.message);
+    throw error;
+  }
+};

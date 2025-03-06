@@ -46,35 +46,75 @@ class UserModel {
 
   // Get all users where role is 2 (Agents) and fetch their properties, tenants, and staff
   async getAllAgents() {
-  try {
-    console.log("Fetching agents from database..."); // Log to confirm the method is called
-    // Fetch all users with role === 2 (agents) and isDeleted === false
-    const agents = await User.find({ role: 2, isDeleted: false });
+    try {
+      console.log("Fetching agents from database..."); // Debug log
+      // Fetch all users with role === 2 (agents) and isDeleted === false
+      const agents = await User.find({ role: 2, isDeleted: false });
 
-    // Fetch additional details for each agent
-    const agentData = await Promise.all(
-      agents.map(async (agent) => {
-        console.log(`Fetching details for agent: ${agent._id}`); // Log each agent
-        const properties = await propertiesModel.getPropertiesByUser(agent._id);
-        const tenants = await tenantModel.getTenantsByUser(agent._id);
-        const staff = await staffModel.getStaffByCreator(agent._id);
+      // Fetch additional details for each agent
+      const agentData = await Promise.all(
+        agents.map(async (agent) => {
+          console.log(`Fetching details for agent: ${agent._id}`); // Debug log
+          const properties = await propertiesModel.getPropertiesByUser(
+            agent._id
+          );
+          const tenants = await tenantModel.getTenantsByUser(agent._id);
+          const staff = await staffModel.getStaffByCreator(agent._id);
 
-        // Return the agent with populated details
-        return {
-          ...agent._doc,
-          properties,
-          tenants,
-          staff,
-        };
-      })
-    );
+          // Fetch RSLs for the agent
+          const rsls = await this.getUserRSLs(agent._id);
 
-    return agentData;
-  } catch (error) {
-    console.error("Error fetching agents in UserModel:", error);
-    throw error; // Throw the error so the controller can handle it
+          // Return the agent with populated details
+          return {
+            ...agent._doc,
+            properties,
+            tenants,
+            staff,
+            rsls: rsls.rsls, // Include RSLs in the response
+          };
+        })
+      );
+
+      return agentData;
+    } catch (error) {
+      console.error("Error fetching agents in UserModel:", error);
+      throw error;
+    }
   }
-}
+
+  // Add RSLs to a user
+  async addRSLsToUser(userId, rslIds) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { rsls: { $each: rslIds } } }, // Use $addToSet to avoid duplicates
+      { new: true }
+    );
+  }
+
+  // Remove RSLs from a user
+  async removeRSLsFromUser(userId, rslIds) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { $pull: { rsls: { $in: rslIds } } }, // Remove specific RSL IDs
+      { new: true }
+    );
+  }
+
+  // Get all RSLs for a user
+  async getUserRSLs(userId) {
+    return await User.findById(userId)
+      .select("rsls")
+      .populate("rsls", "rslName area"); // Populate RSL details
+  }
+
+  // Update RSLs for a user (replace existing RSLs)
+  async updateUserRSLs(userId, rslIds) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { rsls: rslIds }, // Replace the entire array
+      { new: true }
+    );
+  }
 }
 
 export default new UserModel();
