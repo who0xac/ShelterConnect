@@ -5,7 +5,17 @@ import UserModel from "../../models/Users/userModel.js";
 // Create Tenant
 async function createTenant(req, res) {
   try {
-    const { addedBy, property, ...tenantData } = req.body;
+    console.log("Request Body:", req.body); // Debug: Log the request body
+
+    const {
+      addedBy,
+      property,
+      tenantSignature,
+      supportWorkerSignature,
+      ...tenantData
+    } = req.body;
+
+    // Validate required fields
     if (!addedBy || !property) {
       return res.status(400).json({
         success: false,
@@ -13,6 +23,7 @@ async function createTenant(req, res) {
       });
     }
 
+    // Check if user exists
     const addedByUser = await UserModel.findById(addedBy);
     if (!addedByUser) {
       return res.status(404).json({
@@ -21,6 +32,7 @@ async function createTenant(req, res) {
       });
     }
 
+    // Check if property exists
     const propertyExists = await PropertyModel.findPropertyById(property);
     if (!propertyExists) {
       return res
@@ -28,11 +40,15 @@ async function createTenant(req, res) {
         .json({ success: false, message: "Property not found." });
     }
 
+    // Create tenant with signature data
     const tenant = await TenantModel.createTenant({
       addedBy,
       property,
+      tenantSignature, // Ensure this is included
+      supportWorkerSignature, // Ensure this is included
       ...tenantData,
     });
+
     res.status(201).json({
       success: true,
       message: "Tenant created successfully",
@@ -46,7 +62,6 @@ async function createTenant(req, res) {
     });
   }
 }
-
 // Get Tenant by ID
 async function getTenantById(req, res) {
   try {
@@ -81,15 +96,24 @@ async function getAllTenants(req, res) {
 // Update Tenant
 async function updateTenant(req, res) {
   try {
-    const updatedTenant = await TenantModel.updateTenantById(
-      req.params.id,
-      req.body
-    );
+    console.log("Request Body:", req.body); // Debug: Log the request body
+
+    const { tenantSignature, supportWorkerSignature, ...updatedData } =
+      req.body;
+
+    // Update tenant with signature data
+    const updatedTenant = await TenantModel.updateTenantById(req.params.id, {
+      tenantSignature, // Ensure this is included
+      supportWorkerSignature, // Ensure this is included
+      ...updatedData,
+    });
+
     if (!updatedTenant) {
       return res
         .status(404)
         .json({ success: false, message: "Tenant not found" });
     }
+
     res.status(200).json({
       success: true,
       message: "Tenant updated successfully",
@@ -100,8 +124,7 @@ async function updateTenant(req, res) {
     res.status(500).json({ success: false, message: "Error updating tenant" });
   }
 }
-
-// Delete Tenant (Soft Delete)
+// Delete Tenant 
 async function deleteTenant(req, res) {
   try {
     const deletedTenant = await TenantModel.deleteTenant(req.params.id);

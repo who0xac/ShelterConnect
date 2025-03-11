@@ -26,6 +26,7 @@ import {
   CardContent,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -36,13 +37,166 @@ import PersonIcon from "@mui/icons-material/Person";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import TenantForm from "../components/TenantForm.jsx";
-
+import jsPDF from "jspdf";
 // Import API functions
 import { getAllTenants, deleteTenantById } from "../api/tenantApi.js";
 import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
 
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch (error) {
+    return "Invalid Date";
+  }
+};
+
+const handleDownloadReport = (tenant) => {
+  // Create a new PDF document with default font
+  const doc = new jsPDF();
+
+  // Add default font
+  doc.setFont("helvetica");
+
+  let yPosition = 10;
+  const leftMargin = 10;
+  const pageWidth = doc.internal.pageSize.width;
+  const textWidth = pageWidth - leftMargin * 2;
+
+  // Title
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text(
+    `Tenant Report: ${tenant.personalDetails.firstName} ${tenant.personalDetails.lastName}`,
+    leftMargin,
+    yPosition
+  );
+  yPosition += 10;
+
+  // Personal Details Section
+  doc.setFontSize(14);
+  doc.text("Personal Details", leftMargin, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  // Format and add content
+  const details = [
+    `Full Name: ${tenant.personalDetails.title || ""} ${
+      tenant.personalDetails.firstName
+    } ${tenant.personalDetails.middleName || ""} ${
+      tenant.personalDetails.lastName
+    }`,
+    `Date of Birth: ${formatDate(tenant.personalDetails.dateOfBirth)}`,
+    `Place of Birth: ${tenant.personalDetails.placeOfBirth || "N/A"}`,
+    `Gender: ${tenant.personalDetails.gender || "N/A"}`,
+    `Marital Status: ${tenant.personalDetails.maritalStatus || "N/A"}`,
+    `National Insurance Number: ${
+      tenant.personalDetails.nationalInsuranceNumber || "N/A"
+    }`,
+    `Contact Number: ${tenant.personalDetails.contactNumber || "N/A"}`,
+    `Email: ${tenant.personalDetails.email || "N/A"}`,
+  ];
+
+  details.forEach((detail) => {
+    doc.text(detail, leftMargin, yPosition);
+    yPosition += 5;
+  });
+
+  // Property Details Section
+  yPosition += 5;
+  doc.setFontSize(14);
+  doc.text("Property Details", leftMargin, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  const propertyDetails = [
+    `Room Number: ${tenant.roomNumber || "N/A"}`,
+    `Sign In Date: ${formatDate(tenant.signInDate)}`,
+    `Sign Out Date: ${
+      tenant.signOutDate ? formatDate(tenant.signOutDate) : "N/A"
+    }`,
+  ];
+
+  propertyDetails.forEach((detail) => {
+    doc.text(detail, leftMargin, yPosition);
+    yPosition += 5;
+  });
+
+  // Financial Information Section
+  yPosition += 5;
+  doc.setFontSize(14);
+  doc.text("Financial Information", leftMargin, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  const financialDetails = [
+    `Source of Income: ${tenant.sourceOfIncome || "N/A"}`,
+    `Benefits: ${tenant.benefits || "N/A"}`,
+    `Total Amount: ${tenant.totalAmount || "N/A"}`,
+    `Payment Frequency: ${tenant.paymentFrequency || "N/A"}`,
+  ];
+
+  financialDetails.forEach((detail) => {
+    doc.text(detail, leftMargin, yPosition);
+    yPosition += 5;
+  });
+
+  // Health Information Section
+  yPosition += 5;
+  doc.setFontSize(14);
+  doc.text("Health Information", leftMargin, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  const healthDetails = [
+    `Physical Health Conditions: ${
+      tenant.physicalHealthConditions ? "Yes" : "No"
+    }`,
+    `Mental Health Conditions: ${tenant.mentalHealthConditions ? "Yes" : "No"}`,
+    `Prescribed Medication: ${tenant.prescribedMedication ? "Yes" : "No"}`,
+    `Self-Harm or Suicidal Thoughts: ${
+      tenant.selfHarmOrSuicidalThoughts ? "Yes" : "No"
+    }`,
+  ];
+
+  healthDetails.forEach((detail) => {
+    doc.text(detail, leftMargin, yPosition);
+    yPosition += 5;
+  });
+
+  // Skip signature section for now since it's causing issues
+  yPosition += 5;
+  doc.setFontSize(14);
+  doc.text("Signatures", leftMargin, yPosition);
+  yPosition += 6;
+
+  doc.setFontSize(10);
+  doc.text("Tenant Signature: See original document", leftMargin, yPosition);
+  yPosition += 5;
+  doc.text(
+    "Support Worker Signature: See original document",
+    leftMargin,
+    yPosition
+  );
+
+  // Save the PDF - use a try/catch to handle any errors
+  try {
+    doc.save(
+      `Tenant_Report_${tenant.personalDetails.firstName}_${tenant.personalDetails.lastName}.pdf`
+    );
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast.error("Failed to generate PDF report. Please try again.");
+  }
+};
 const Tenants = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -696,6 +850,23 @@ const filteredData = tenantsData.filter((row) => {
                               size="small"
                             >
                               <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Download Report">
+                            <IconButton
+                              color="secondary"
+                              onClick={() => handleDownloadReport(row)}
+                              sx={{
+                                "&:hover": {
+                                  bgcolor: "rgba(156, 39, 176, 0.1)",
+                                  transform: "translateY(-2px)",
+                                },
+                                transition: "all 0.2s",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                              }}
+                              size="small"
+                            >
+                              <DownloadIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </Box>

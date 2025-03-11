@@ -28,8 +28,6 @@ api.interceptors.response.use(
   }
 );
 
-
-
 // Use the Axios instance for API calls
 export const loginUser = async (email, password) => {
   try {
@@ -37,12 +35,9 @@ export const loginUser = async (email, password) => {
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || "Login failed";
-    throw new Error(errorMessage); // Only throw, no toast here
+    throw new Error(errorMessage);
   }
 };
-
-
-
 
 // User Registration API
 export const registerUser = async (userData) => {
@@ -79,7 +74,6 @@ export const getAllAgents = async () => {
     return null;
   }
 };
-
 
 // Get a single user by ID
 export const getUserById = async (userId) => {
@@ -186,7 +180,10 @@ export const getUserRSLs = async (userId) => {
     const response = await api.get(`/${userId}/rsls`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching user RSLs:", error.response?.data || error.message);
+    console.error(
+      "Error fetching user RSLs:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
@@ -197,7 +194,10 @@ export const updateUserRSLs = async (userId, rslIds) => {
     const response = await api.put(`/${userId}/rsls`, { rslIds });
     return response.data;
   } catch (error) {
-    console.error("Error updating user RSLs:", error.response?.data || error.message);
+    console.error(
+      "Error updating user RSLs:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };

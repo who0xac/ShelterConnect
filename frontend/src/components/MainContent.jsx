@@ -9,6 +9,8 @@ import {
   Grid,
   useTheme,
   alpha,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -16,6 +18,7 @@ import {
   BusinessCenter as AgentIcon,
   Group as StaffIcon,
   Assessment as ReportIcon,
+  PieChart as ChartIcon,
 } from "@mui/icons-material";
 import { jwtDecode } from "jwt-decode";
 import { getAllAgents } from "../api/userApi.js";
@@ -23,6 +26,19 @@ import { getAllProperties } from "../api/propertyApi.js";
 import { getAllRSLs } from "../api/rslApi.js";
 import { getAllStaff } from "../api/staffApi.js";
 import { getAllTenants } from "../api/tenantApi.js";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const MainContent = ({ sidebarOpen, drawerWidth }) => {
   const theme = useTheme();
@@ -30,13 +46,40 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState("");
+  const [activeTab, setActiveTab] = useState(0);
   const [data, setData] = useState({
     tenants: 0,
     properties: 0,
+    nonActiveTenants: 0,
     staff: 0,
     agents: 0,
     rsls: 0,
   });
+
+  const [visualizationData, setVisualizationData] = useState({
+    propertyTypes: [],
+    cityDistribution: [],
+    sharedStatus: [],
+    ethnicOrigin: [],
+    criminalRecord: [],
+    criminalRecordTypes: [],
+    drugUse: [],
+    furnishingStatus: [],
+    financialMetrics: [],
+  });
+
+  const COLORS = [
+    "#3f51b5",
+    "#00acc1",
+    "#ff9800",
+    "#f44336",
+    "#4caf50",
+    "#9c27b0",
+  ];
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   const getUserRoleFromToken = () => {
     try {
@@ -67,6 +110,93 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     return [];
   };
 
+  const processVisualizationData = (propertyData, tenantData) => {
+    // Property-related visualizations
+    const propertyTypes = [
+      { name: "Shared Accommodations", value: propertyData.filter(p => p.sharedWithOther).length },
+      { name: "Bedsits", value: propertyData.filter(p => p.bedsit).length },
+      { name: "Self-Contained Flats", value: propertyData.filter(p => p.selfContainedFlat).length },
+    ];
+
+    const cityDistribution = Object.entries(
+      propertyData.reduce((acc, p) => {
+        const city = p.city || 'Unknown';
+        acc[city] = (acc[city] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([city, count]) => ({ city, count }));
+
+    const sharedStatus = [
+      { name: "Shared Properties", value: propertyData.filter(p => p.sharedWithOther).length },
+      { name: "Non-Shared Properties", value: propertyData.length - propertyData.filter(p => p.sharedWithOther).length },
+    ];
+
+    const furnishingStatus = [
+      { name: "Unfurnished", value: propertyData.filter(p => p.unfurnished).length },
+      { name: "Part-Furnished", value: propertyData.filter(p => p.partFurnished).length },
+      { name: "Fully Furnished", value: propertyData.filter(p => p.fullyFurnished).length },
+    ];
+
+    const financialMetrics = Object.entries(
+      propertyData.reduce((acc, p) => {
+        const city = p.city || 'Unknown';
+        if (!acc[city]) {
+          acc[city] = { basicRent: 0, serviceCharges: 0, eligibleRent: 0, count: 0 };
+        }
+        acc[city].basicRent += p.basicRent;
+        acc[city].serviceCharges += p.totalServiceCharges;
+        acc[city].eligibleRent += p.totalEligibleRent;
+        acc[city].count++;
+        return acc;
+      }, {})
+    ).map(([city, data]) => ({
+      city,
+      basicRent: data.basicRent / data.count,
+      serviceCharges: data.serviceCharges / data.count,
+      eligibleRent: data.eligibleRent / data.count,
+    }));
+
+    // Tenant-related visualizations
+    const ethnicOrigin = Object.entries(
+      tenantData.reduce((acc, t) => {
+        const origin = t.ethnicOrigin || 'Unknown';
+        acc[origin] = (acc[origin] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([ethnicity, count]) => ({ ethnicity, count }));
+
+    const criminalRecord = [
+      { name: "Has Criminal Record", value: tenantData.filter(t => t.criminalRecords).length },
+      { name: "No Criminal Record", value: tenantData.length - tenantData.filter(t => t.criminalRecords).length },
+    ];
+
+    const criminalRecordTypes = Object.entries(
+      tenantData.filter(t => t.criminalRecords)
+        .reduce((acc, t) => {
+          const type = t.offenceDetails?.nature || 'Other';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {})
+    ).map(([type, count]) => ({ type, count }));
+
+    const drugUse = [
+      { name: "Drug Use History", value: tenantData.filter(t => t.drugUse).length },
+      { name: "No Drug Use History", value: tenantData.length - tenantData.filter(t => t.drugUse).length },
+    ];
+
+    return {
+      propertyTypes,
+      cityDistribution,
+      sharedStatus,
+      ethnicOrigin,
+      criminalRecord,
+      criminalRecordTypes,
+      drugUse,
+      furnishingStatus,
+      financialMetrics,
+    };
+  };
+
   const fetchAllData = async () => {
     setLoading(true);
     setError(null);
@@ -80,11 +210,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         return;
       }
 
-      let tenantData = [],
-        propertyData = [],
-        staffData = [],
-        rslData = [],
-        agentData = [];
+      let tenantData = [], propertyData = [], staffData = [], rslData = [], agentData = [];
 
       try {
         const tenantResponse = await getAllTenants();
@@ -141,6 +267,9 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         rsls: rslData.length,
         agents: agentData.length,
       });
+
+      const visualizationData = processVisualizationData(propertyData, tenantData);
+      setVisualizationData(visualizationData);
     } catch (error) {
       console.error("Fatal error:", error);
       setError("Unable to load dashboard data. Please try again later.");
@@ -173,7 +302,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
 
     const commonCards = [
       {
-        label: "Active Tenants",
+        label: "Tenants",
         value: data.tenants,
         icon: (
           <PeopleIcon
@@ -204,7 +333,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           cards: [
             ...commonCards,
             {
-              label: "Active Managing Agents",
+              label: "Managing Agents",
               value: data.agents,
               icon: (
                 <AgentIcon
@@ -215,7 +344,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
               color: "success",
             },
             {
-              label: "Active Staff Members",
+              label: "Staff Members",
               value: data.staff,
               icon: (
                 <StaffIcon
@@ -246,7 +375,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           cards: [
             ...commonCards,
             {
-              label: "Active Staff Members",
+              label: "Staff Members",
               value: data.staff,
               icon: (
                 <StaffIcon
@@ -277,6 +406,368 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
   };
 
   const { title, subtitle, cards, cardStyles } = getRoleBasedContent();
+
+  // Visualization Cards
+  const renderVisualizationCards = () => {
+    const visualizationCardStyle = {
+      minHeight: 320,
+      boxShadow: theme.shadows[3],
+      borderRadius: "16px",
+      p: 2,
+      mb: 3,
+      background: theme.palette.background.paper,
+      border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+      transition: "transform 0.3s, box-shadow 0.3s",
+      "&:hover": {
+        transform: "translateY(-5px)",
+        boxShadow: theme.shadows[6],
+      },
+    };
+
+    const cards = [
+      // 1. Property Type Distribution
+      <Grid item xs={12} md={6} key="property-type">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Property Type Distribution
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Breakdown of property types helping to understand variety and
+            distribution
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={visualizationData.propertyTypes}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {visualizationData.propertyTypes.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 2. Geographical Distribution
+      <Grid item xs={12} md={6} key="geo-distribution">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Geographical Distribution by City
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Concentration of properties by city for strategic planning
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={visualizationData.cityDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="city" />
+                <YAxis />
+                <Tooltip />
+                <Bar
+                  dataKey="count"
+                  fill={theme.palette.primary.main}
+                  name="Number of Properties"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 3. Shared vs Non-Shared Properties
+      <Grid item xs={12} md={6} key="shared-status">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Shared vs Non-Shared Properties
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Proportion of shared living spaces for tenant preferences
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={visualizationData.sharedStatus}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {visualizationData.sharedStatus.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 4. Tenant Demographics: Ethnic Origin
+      <Grid item xs={12} md={6} key="ethnic-origin">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Tenant Demographics: Ethnic Origin
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Distribution showing tenant diversity for inclusive housing
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={visualizationData.ethnicOrigin}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="ethnicity" />
+                <YAxis />
+                <Tooltip />
+                <Bar
+                  dataKey="count"
+                  fill={theme.palette.info.main}
+                  name="Number of Tenants"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 5. Criminal Records
+      <Grid item xs={12} md={6} key="criminal-records">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Criminal Records
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Percentage of tenants with criminal records for risk assessment
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={visualizationData.criminalRecord}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {visualizationData.criminalRecord.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        index === 0
+                          ? theme.palette.error.main
+                          : theme.palette.success.main
+                      }
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 6. Drug Use
+      <Grid item xs={12} md={6} key="drug-use">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Drug Use History
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Percentage of tenants with drug use history for support services
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={visualizationData.drugUse}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {visualizationData.drugUse.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        index === 0
+                          ? theme.palette.warning.main
+                          : theme.palette.success.light
+                      }
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 7. Furnishing Status
+      <Grid item xs={12} md={6} key="furnishing-status">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Furnishing Status
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Distribution of properties by furnishing status
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={visualizationData.furnishingStatus}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {visualizationData.furnishingStatus.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+
+      // 8. Financial Metrics Comparison
+      <Grid item xs={12} md={6} key="financial-metrics">
+        <Card sx={visualizationCardStyle}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
+          >
+            Financial Metrics Comparison
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mb: 2, color: theme.palette.text.secondary }}
+          >
+            Comparison of basic rent, service charges, and eligible rent
+          </Typography>
+          <Box sx={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={visualizationData.financialMetrics}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="city" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar
+                  dataKey="basicRent"
+                  fill={theme.palette.primary.main}
+                  name="Basic Rent"
+                />
+                <Bar
+                  dataKey="serviceCharges"
+                  fill={theme.palette.secondary.main}
+                  name="Service Charges"
+                />
+                <Bar
+                  dataKey="eligibleRent"
+                  fill={theme.palette.success.main}
+                  name="Eligible Rent"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>,
+    ];
+
+    return cards;
+  };
 
   return (
     <Box
@@ -337,98 +828,153 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         </Alert>
       )}
 
-     <Grid container spacing={4} sx={{ px: { xs: 0, sm: 4 } }}>
-  {cards.map((card, index) => (
-    <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-      <Card
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        centered
         sx={{
-          minWidth: 250, // Set a minimum width for the card
-          height: "100%", // Ensure all cards have the same height
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: `linear-gradient(135deg, ${alpha(
-            theme.palette[card.color].main,
-            0.1
-          )} 0%, ${alpha(theme.palette[card.color].main, 0.05)} 100%)`,
-          border: `1px solid ${alpha(theme.palette[card.color].main, 0.2)}`,
-          boxShadow: theme.shadows[2],
-          borderRadius: "16px",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          "&:hover": {
-            transform: "translateY(-5px)",
-            boxShadow: theme.shadows[6],
-            borderColor: alpha(theme.palette[card.color].main, 0.4),
+          mb: 4,
+          borderBottom: 1,
+          borderColor: "divider",
+          "& .MuiTabs-indicator": {
+            backgroundColor: theme.palette.primary.main,
+            height: 3,
+          },
+          "& .MuiTab-root": {
+            textTransform: "none",
+            fontWeight: 500,
+            fontSize: "1rem",
+            color: theme.palette.text.secondary,
+            "&.Mui-selected": {
+              color: theme.palette.primary.main,
+              fontWeight: 600,
+            },
           },
         }}
       >
-        <CardContent>
-          <Box
+        <Tab label="Overview" />
+        <Tab label="Detailed Analytics" />
+      </Tabs>
+
+      {activeTab === 0 && (
+        <Grid container spacing={4} sx={{ px: { xs: 0, sm: 4 } }}>
+          {cards.map((card, index) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+              <Card
+                sx={{
+                  minWidth: 250,
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  background: `linear-gradient(135deg, ${alpha(
+                    theme.palette[card.color].main,
+                    0.1
+                  )} 0%, ${alpha(theme.palette[card.color].main, 0.05)} 100%)`,
+                  border: `1px solid ${alpha(
+                    theme.palette[card.color].main,
+                    0.2
+                  )}`,
+                  boxShadow: theme.shadows[2],
+                  borderRadius: "16px",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                    boxShadow: theme.shadows[6],
+                    borderColor: alpha(theme.palette[card.color].main, 0.4),
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      mb: 2,
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        p: 2,
+                        bgcolor: alpha(theme.palette[card.color].main, 0.1),
+                        borderRadius: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {card.icon}
+                    </Box>
+                    {loading ? (
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Skeleton
+                          variant="rounded"
+                          width="100%"
+                          height={40}
+                          sx={{ borderRadius: 2 }}
+                        />
+                        <Skeleton
+                          variant="text"
+                          width="60%"
+                          sx={{ fontSize: "1rem", mt: 1 }}
+                        />
+                      </Box>
+                    ) : (
+                      <Box>
+                        <Typography
+                          variant="h3"
+                          component="div"
+                          sx={{
+                            fontWeight: 700,
+                            color: theme.palette[card.color].dark,
+                            fontSize: { xs: "1.5rem", sm: "2rem" },
+                          }}
+                        >
+                          {card.value}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      fontWeight: 500,
+                      pl: 1,
+                      fontSize: { xs: "1rem", sm: "1.1rem" },
+                    }}
+                  >
+                    {card.label}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      {activeTab === 1 && (
+        <Box>
+          <Typography
+            variant="h5"
             sx={{
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              mb: 3,
               display: "flex",
               alignItems: "center",
-              mb: 2,
-              gap: 2,
+              gap: 1,
             }}
           >
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: alpha(theme.palette[card.color].main, 0.1),
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {card.icon}
-            </Box>
-            {loading ? (
-              <Box sx={{ flexGrow: 1 }}>
-                <Skeleton
-                  variant="rounded"
-                  width="100%"
-                  height={40}
-                  sx={{ borderRadius: 2 }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="60%"
-                  sx={{ fontSize: "1rem", mt: 1 }}
-                />
-              </Box>
-            ) : (
-              <Box>
-                <Typography
-                  variant="h3"
-                  component="div"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.palette[card.color].dark,
-                    fontSize: { xs: "1.5rem", sm: "2rem" },
-                  }}
-                >
-                  {card.value}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-          <Typography
-            variant="h6"
-            sx={{
-              color: theme.palette.text.secondary,
-              fontWeight: 500,
-              pl: 1,
-              fontSize: { xs: "1rem", sm: "1.1rem" },
-            }}
-          >
-            {card.label}
+            <ChartIcon color="primary" />
+            Detailed Analytics
           </Typography>
-        </CardContent>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
+          <Grid container spacing={3}>
+            {renderVisualizationCards()}
+          </Grid>
+        </Box>
+      )}
     </Box>
   );
 };

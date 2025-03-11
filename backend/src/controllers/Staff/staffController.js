@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import StaffModel from "../../models/Staff/staffModel.js"; 
+import StaffModel from "../../models/Staff/staffModel.js";
 import UserModel from "../../models/Users/userModel.js";
 import dotenv from "dotenv";
 
@@ -8,7 +8,6 @@ dotenv.config();
 // Create Staff
 async function createStaff(req, res) {
   try {
-   
     const { email, password, addedBy, ...otherData } = req.body;
     if (!addedBy) {
       return res.status(400).json({
@@ -40,7 +39,7 @@ async function createStaff(req, res) {
       email,
       password: hashedPassword,
       addedBy,
-      correspondingEmail, 
+      correspondingEmail,
       ...otherData,
     });
 
@@ -50,7 +49,7 @@ async function createStaff(req, res) {
       data: newStaff,
     });
   } catch (error) {
-    console.error("Error creating staff:", error); 
+    console.error("Error creating staff:", error);
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -86,6 +85,7 @@ async function getStaffById(req, res) {
     });
   }
 }
+
 async function getMyStaff(req, res) {
   try {
     // Get user ID from the authenticated request
@@ -106,6 +106,7 @@ async function getMyStaff(req, res) {
     });
   }
 }
+
 // Get All Staff
 async function getAllStaff(req, res) {
   try {
@@ -126,9 +127,19 @@ async function getAllStaff(req, res) {
 // Update Staff
 async function updateStaff(req, res) {
   try {
+    const { password, ...otherData } = req.body;
+    let updateData = { ...otherData };
+
+    // If password is being updated, hash it first
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updateData.password = hashedPassword;
+    }
+
     const updatedStaff = await StaffModel.updateStaffById(
       req.params.id,
-      req.body
+      updateData
     );
 
     if (!updatedStaff) {
@@ -138,9 +149,9 @@ async function updateStaff(req, res) {
       });
     }
 
-   const staffWithoutPassword = await StaffModel.findStaffById(
-     updatedStaff._id
-   );
+    const staffWithoutPassword = await StaffModel.findStaffById(
+      updatedStaff._id
+    );
 
     res.status(200).json({
       success: true,
@@ -156,7 +167,7 @@ async function updateStaff(req, res) {
   }
 }
 
-// Delete Staff 
+// Delete Staff
 async function deleteStaff(req, res) {
   try {
     const deletedStaff = await StaffModel.deleteStaff(req.params.id);
@@ -181,4 +192,11 @@ async function deleteStaff(req, res) {
   }
 }
 
-export { createStaff, getStaffById, getAllStaff, updateStaff, deleteStaff ,getMyStaff};
+export {
+  createStaff,
+  getStaffById,
+  getAllStaff,
+  updateStaff,
+  deleteStaff,
+  getMyStaff,
+};

@@ -126,63 +126,48 @@ const TenantSchema = new mongoose.Schema(
     termsAndConditions: {
       supportChecklist: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       licenseToOccupy: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       weeklyServiceCharge: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       missingPersonForm: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       tenantPhotographicID: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       personalDetailsAgreement: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       licenseChargePayments: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       fireEvacuationProcedure: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       supportAgreement: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       complaintsProcedure: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       confidentialityWaiver: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       nilIncomeFormAgreement: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       authorizationForm: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       supportServices: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
       staffAgreement: {
         agreed: { type: Boolean },
-        signature: { type: String },
       },
     },
 

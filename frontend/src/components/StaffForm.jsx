@@ -21,6 +21,17 @@ import {
 // Import Staff API functions
 import { createStaff, updateStaffById } from "../api/staffApi.js";
 
+// Permission labels
+const PERMISSION_LABELS = [
+  "Add Property",
+  "Edit Property",
+  "Delete Property",
+  "Add Tenant",
+  "Edit Tenant",
+  "Delete Tenant",
+  "SignOut Tenant",
+];
+
 const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const navigate = useNavigate();
 
@@ -33,7 +44,7 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     gender: "Male",
     username: "",
     email: "",
-    correspondingEmail: "", // This will be populated from backend
+    correspondingEmail: "",
     password: "",
     role: 3,
     isDeleted: false,
@@ -44,13 +55,19 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
   // State for form errors
   const [errors, setErrors] = useState({});
 
+  const { checkboxValues, ...restData } = formData;
+  const staffData = {
+    ...restData,
+    permissions: checkboxValues,
+  };
+
   // Initialize form data if in edit mode
   useEffect(() => {
     if (editMode && initialData) {
       setFormData({
         ...initialData,
         password: "",
-        checkboxValues: initialData.checkboxValues || Array(9).fill(false),
+        checkboxValues: initialData.permissions || Array(9).fill(false),
       });
     }
   }, [editMode, initialData]);
@@ -199,7 +216,7 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
                 label="First Name"
                 name="firstName"
                 value={formData.firstName}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Fixed: Changed from sehandleInputChange to handleInputChange
                 error={!!errors.firstName}
                 helperText={errors.firstName}
               />
@@ -300,24 +317,27 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
               />
             </Grid>
 
-            {/* Checkbox Section */}
+            {/* Permissions Section */}
             <Grid item xs={12}>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Permissions (Tick to enable):
+                Permissions:
               </Typography>
-              {Array.from({ length: 9 }, (_, index) => (
-                <FormControlLabel
-                  key={index}
-                  control={
-                    <Checkbox
-                      checked={formData.checkboxValues[index]}
-                      onChange={() => handleCheckboxChange(index)}
-                      name={`checkbox${index}`}
+              <Grid container spacing={2}>
+                {PERMISSION_LABELS.map((label, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={index}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.checkboxValues[index]}
+                          onChange={() => handleCheckboxChange(index)}
+                          name={`permission-${index}`}
+                        />
+                      }
+                      label={label}
                     />
-                  }
-                  label={`Permission ${index + 1}`}
-                />
-              ))}
+                  </Grid>
+                ))}
+              </Grid>
             </Grid>
 
             <Grid item xs={12} sx={{ textAlign: "center" }}>
@@ -341,7 +361,10 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
 StaffForm.propTypes = {
   onSuccess: PropTypes.func,
   onClose: PropTypes.func,
-  initialData: PropTypes.object,
+  initialData: PropTypes.shape({
+    _id: PropTypes.string,
+    permissions: PropTypes.arrayOf(PropTypes.bool),
+  }),
   editMode: PropTypes.bool,
 };
 

@@ -29,87 +29,47 @@ import { toast } from "react-toastify";
 import { createTenant, updateTenantById } from "../api/tenantApi";
 import { getAllProperties } from "../api/propertyApi";
 
-// Signature Pad Component
-const SignaturePad = ({ onSave, initialSignature }) => {
+
+
+ const SignaturePad = ({ onSave, initialSignature }) => {
   const [showPad, setShowPad] = useState(false);
-  const signatureRef = useRef(null);
+  const sigCanvas = useRef(null);
+ 
 
   const handleSave = () => {
-    if (signatureRef.current.isEmpty()) {
+    if (sigCanvas.current.isEmpty()) {
       toast.warning("Please provide a signature");
       return;
     }
+ 
 
-    const signature = signatureRef.current
-      .getTrimmedCanvas()
-      .toDataURL("image/png");
+    // Get the full canvas data URL directly
+    const signature = sigCanvas.current.toDataURL();
     onSave(signature);
     setShowPad(false);
   };
+ 
 
   const handleClear = () => {
-    signatureRef.current.clear();
+    sigCanvas.current.clear();
   };
+ 
 
   return (
     <Box>
-      {showPad ? (
-        <Box>
-          <Box sx={{ border: "1px solid #ccc", mb: 1 }}>
-            <SignatureCanvas
-              ref={signatureRef}
-              penColor="black"
-              canvasProps={{
-                width: 300,
-                height: 100,
-                className: "sigCanvas",
-              }}
-            />
-          </Box>
-          <Box display="flex" gap={1}>
-            <Button variant="outlined" size="small" onClick={handleClear}>
-              Clear
-            </Button>
-            <Button variant="contained" size="small" onClick={handleSave}>
-              Save
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setShowPad(false)}
-            >
-              Cancel
-            </Button>
-          </Box>
-        </Box>
-      ) : (
-        <Box>
-          {initialSignature ? (
-            <Box sx={{ mb: 1 }}>
-              <img
-                src={initialSignature}
-                alt="Signature"
-                style={{ maxWidth: 200, maxHeight: 80 }}
-              />
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => setShowPad(true)}
-                sx={{ ml: 2 }}
-              >
-                Change Signature
-              </Button>
-            </Box>
-          ) : (
-            <Button variant="outlined" onClick={() => setShowPad(true)}>
-              Add Signature
-            </Button>
-          )}
-        </Box>
-      )}
+    <SignatureCanvas
+      ref={sigCanvas}
+      penColor="black"
+      canvasProps={{ width: 300, height: 100 }}
+      onEnd={handleSave}
+    />
+      <Button variant="outlined" size="small" onClick={handleClear}>
+       Clear
+      </Button>
     </Box>
   );
-};
+ };
+
 
 const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const [loading, setLoading] = useState(false);
@@ -391,21 +351,21 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
         // Initialize termsAndConditions object with all entries if it doesn't exist or is incomplete
         if (!formattedData.termsAndConditions) {
           formattedData.termsAndConditions = {
-            supportChecklist: { agreed: false, signature: "" },
-            licenseToOccupy: { agreed: false, signature: "" },
-            weeklyServiceCharge: { agreed: false, signature: "" },
-            missingPersonForm: { agreed: false, signature: "" },
-            tenantPhotographicID: { agreed: false, signature: "" },
-            personalDetailsAgreement: { agreed: false, signature: "" },
-            licenseChargePayments: { agreed: false, signature: "" },
-            fireEvacuationProcedure: { agreed: false, signature: "" },
-            supportAgreement: { agreed: false, signature: "" },
-            complaintsProcedure: { agreed: false, signature: "" },
-            confidentialityWaiver: { agreed: false, signature: "" },
-            nilIncomeFormAgreement: { agreed: false, signature: "" },
-            authorizationForm: { agreed: false, signature: "" },
-            supportServices: { agreed: false, signature: "" },
-            staffAgreement: { agreed: false, signature: "" },
+            supportChecklist: { agreed: false },
+            licenseToOccupy: { agreed: false },
+            weeklyServiceCharge: { agreed: false },
+            missingPersonForm: { agreed: false },
+            tenantPhotographicID: { agreed: false },
+            personalDetailsAgreement: { agreed: false },
+            licenseChargePayments: { agreed: false },
+            fireEvacuationProcedure: { agreed: false },
+            supportAgreement: { agreed: false },
+            complaintsProcedure: { agreed: false },
+            confidentialityWaiver: { agreed: false },
+            nilIncomeFormAgreement: { agreed: false },
+            authorizationForm: { agreed: false },
+            supportServices: { agreed: false },
+            staffAgreement: { agreed: false },
           };
         } else {
           // Make sure all terms and conditions objects exist
@@ -586,52 +546,43 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
     }));
   };
 
-  const handleSignatureChange = (fieldPath, signature) => {
-    const path = fieldPath.split(".");
-    if (path.length === 2) {
-      // For signatures in termsAndConditions object
-      setFormData((prev) => ({
-        ...prev,
-        [path[0]]: {
-          ...prev[path[0]],
-          [path[1]]: {
-            ...prev[path[0]][path[1]],
-            signature,
-          },
-        },
-      }));
-    } else {
-      // For direct signature fields
-      setFormData((prev) => ({
-        ...prev,
-        [fieldPath]: signature,
-      }));
-    }
-  };
+const handleSignatureChange = (fieldName, signature) => {
+  console.log("Updating Signature:", fieldName, signature); // Debug: Log the update
+  setFormData((prev) => ({
+    ...prev,
+    [fieldName]: signature, // Update the correct field in formData
+  }));
+};
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) {
-      toast.error("Please correct the errors in the form");
-      return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  console.log("Form Data Before Submission:", formData); // Debug: Log formData
+
+  if (!validate()) {
+    toast.error("Please correct the errors in the form");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    if (editMode && initialData._id) {
+      await updateTenantById(initialData._id, formData);
+      toast.success("Tenant updated successfully!");
+    } else {
+      await createTenant(formData);
+      toast.success("Tenant added successfully!");
     }
-    setLoading(true);
-    try {
-      if (editMode && initialData._id) {
-        await updateTenantById(initialData._id, formData);
-        toast.success("Tenant updated successfully!");
-      } else {
-        await createTenant(formData);
-        toast.success("Tenant added successfully!");
-      }
-      onSuccess();
-    } catch (error) {
-      console.error("Form submission error:", error);
-      toast.error(error.response?.data?.message || "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+    onSuccess(); // Callback for success
+  } catch (error) {
+    console.error("Form submission error:", error);
+    toast.error(error.response?.data?.message || "An error occurred");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -652,12 +603,14 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                   <Select
                     labelId="property-label"
                     name="property"
-                    value={formData.property}
+                    value={formData.property || ""}
                     onChange={handlePropertyChange}
                     label="Property *"
                   >
                     {properties.map((property) => (
                       <MenuItem key={property._id} value={property._id}>
+                        {" "}
+                        {/* Ensure value is property._id */}
                         {property.address || "Unnamed Property"}
                       </MenuItem>
                     ))}
@@ -675,24 +628,18 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                   <Select
                     labelId="room-number-label"
                     name="roomNumber"
-                    value={formData.roomNumber}
+                    value={formData.roomNumber || ""} // Ensure value is a string or empty string
                     onChange={handleChange}
                     label="Room Number *"
                     disabled={!selectedProperty || availableRooms.length === 0}
                   >
                     {availableRooms.map((room) => (
                       <MenuItem key={room} value={room}>
+                        {" "}
+                        {/* Ensure value is a string */}
                         Room {room}
                       </MenuItem>
                     ))}
-                    {/* Show current room in edit mode even if it's now occupied */}
-                    {editMode &&
-                      formData.roomNumber &&
-                      !availableRooms.includes(formData.roomNumber) && (
-                        <MenuItem value={formData.roomNumber}>
-                          Room {formData.roomNumber} (Current)
-                        </MenuItem>
-                      )}
                   </Select>
                   {errors.roomNumber && (
                     <Typography color="error" variant="caption">
@@ -2223,19 +2170,20 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
           onChange={handleAccordionChange("panel6")}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">Terms & Conditions</Typography>
+            <Typography variant="h6">Terms and Conditions</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
-              {Object.entries(formData.termsAndConditions).map(
+              {Object.entries(formData.termsAndConditions || {}).map(
                 ([key, value]) => (
                   <Grid item xs={12} key={key}>
                     <Box
                       sx={{
-                        border: "1px solid #eee",
-                        p: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
                         borderRadius: 2,
                         mb: 2,
+                        p: 2,
                       }}
                     >
                       <FormControlLabel
@@ -2261,23 +2209,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                           .replace(/([A-Z])/g, " $1")
                           .replace(/^./, (str) => str.toUpperCase())}
                       />
-
-                      {value.agreed && (
-                        <Box mt={2}>
-                          <Typography variant="subtitle2" gutterBottom>
-                            Signature:
-                          </Typography>
-                          <SignaturePad
-                            onSave={(signature) =>
-                              handleSignatureChange(
-                                `termsAndConditions.${key}`,
-                                signature
-                              )
-                            }
-                            initialSignature={value.signature}
-                          />
-                        </Box>
-                      )}
                     </Box>
                   </Grid>
                 )

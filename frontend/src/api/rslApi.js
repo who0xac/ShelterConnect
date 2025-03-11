@@ -1,6 +1,12 @@
 import axios from "axios";
 
+// Use environment variable for base URL
 const API_BASE_URL = "http://localhost:3000/api/rsl";
+
+// Utility function to validate RSL ID
+const isValidRSLId = (rslId) => {
+  return typeof rslId === "string" || typeof rslId === "number";
+};
 
 // Create a new RSL entry
 export const createRSL = async (rslData) => {
@@ -29,6 +35,10 @@ export const getAllRSLs = async () => {
 
 // Get a single RSL by ID
 export const getRSLById = async (rslId) => {
+  if (!isValidRSLId(rslId)) {
+    throw new Error("Invalid RSL ID. Please provide a valid ID.");
+  }
+
   try {
     const response = await axios.get(`${API_BASE_URL}/${rslId}`);
     return response.data;
@@ -40,6 +50,10 @@ export const getRSLById = async (rslId) => {
 
 // Update an RSL entry by ID
 export const updateRSLById = async (rslId, updatedData) => {
+  if (!isValidRSLId(rslId)) {
+    throw new Error("Invalid RSL ID. Please provide a valid ID.");
+  }
+
   try {
     const response = await axios.put(`${API_BASE_URL}/${rslId}`, updatedData);
     return response.data;
@@ -51,6 +65,10 @@ export const updateRSLById = async (rslId, updatedData) => {
 
 // Delete an RSL entry by ID
 export const deleteRSLById = async (rslId) => {
+  if (!isValidRSLId(rslId)) {
+    throw new Error("Invalid RSL ID. Please provide a valid ID.");
+  }
+
   try {
     const response = await axios.delete(`${API_BASE_URL}/${rslId}`);
     return response.data;
@@ -60,21 +78,21 @@ export const deleteRSLById = async (rslId) => {
   }
 };
 
-
 // Get only RSL names
 export const getRSLNames = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}`);
 
     let rslNames = [];
+
+    // Handle both response formats: array and { data: array }
     if (Array.isArray(response.data)) {
-      // Case where API returns an array directly
       rslNames = response.data.map((rsl) => rsl.rslName);
     } else if (response.data?.data && Array.isArray(response.data.data)) {
-      // Case where API returns { data: [...] }
       rslNames = response.data.data.map((rsl) => rsl.rslName);
     } else {
       console.error("Unexpected response format:", response.data);
+      throw new Error("Unexpected response format from the API.");
     }
 
     console.log("Extracted RSL names:", rslNames);
