@@ -17,6 +17,8 @@ import {
   ThemeProvider,
   createTheme,
 } from "@mui/material";
+import { useAuth } from "../context/AuthContext.jsx"; 
+import roles from "../context/role.js"; 
 
 import {
   Menu as MenuIcon,
@@ -61,12 +63,17 @@ const sidebarTheme = createTheme({
 });
 
 const navigationItems = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Tenants", icon: <FamilyRestroomIcon />, path: "/tenants" },
-  { text: "Properties", icon: <ApartmentIcon />, path: "/properties" },
-  { text: "Agents", icon: <BadgeIcon />, path: "/agents" },
-  { text: "Registered RSL", icon: <GroupWorkIcon />, path: "/registered-rsl" },
-  { text: "Staff", icon: <SupervisorAccountIcon />, path: "/staff" },
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard", key: 1 },
+  { text: "Tenants", icon: <FamilyRestroomIcon />, path: "/tenants", key: 2 },
+  { text: "Properties", icon: <ApartmentIcon />, path: "/properties", key: 3 },
+  { text: "Agents", icon: <BadgeIcon />, path: "/agents", key: 4 },
+  {
+    text: "Registered RSL",
+    icon: <GroupWorkIcon />,
+    path: "/registered-rsl",
+    key: 5,
+  },
+  { text: "Staff", icon: <SupervisorAccountIcon />, path: "/staff", key: 6 },
   // { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
 ];
 
@@ -81,6 +88,10 @@ const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user } = useAuth();
+
+  // Get allowed pages for the user's role
+  const allowedPages = roles[user?.role] || [];
 
   const drawer = (
     <ThemeProvider theme={sidebarTheme}>
@@ -123,7 +134,6 @@ const Sidebar = ({
               }}
             >
               ShelterConnect
-             
             </Typography>
           </Box>
           <IconButton
@@ -137,60 +147,66 @@ const Sidebar = ({
             {sidebarOpen ? <MenuOpenIcon /> : <ArrowRightIcon />}
           </IconButton>
         </Toolbar>
-
         <Divider sx={{ bgcolor: "rgba(255, 255, 255, 0.2)", mb: 1 }} />
-
         {/* Navigation Items */}
         <List sx={{ flexGrow: 1, px: 1 }}>
-          {navigationItems.map((item) => (
-            <Tooltip
-              key={item.text}
-              title={!sidebarOpen ? item.text : ""}
-              placement="right"
-            >
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPath === item.path}
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: sidebarOpen ? "initial" : "center",
-                    px: 2.5,
-                    borderRadius: "8px",
-                    my: 0.5,
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      bgcolor: "rgba(255, 255, 255, 0.1)",
-                      transform: "translateX(4px)",
-                    },
-                  }}
-                >
-                  <ListItemIcon
+          {navigationItems.map((item) => {
+            // Check if current role has access to this navigation item
+            const isAllowed = allowedPages.includes(item.key);
+
+            // Return null for unauthorized items (won't render anything)
+            if (!isAllowed) return null;
+
+            return (
+              <Tooltip
+                key={item.text}
+                title={!sidebarOpen ? item.text : ""}
+                placement="right"
+              >
+                <ListItem disablePadding>
+                  <ListItemButton
+                    selected={currentPath === item.path}
+                    onClick={() => navigate(item.path)}
                     sx={{
-                      minWidth: 0,
-                      mr: sidebarOpen ? 2 : "auto",
-                      justifyContent: "center",
-                      color: currentPath === item.path ? "#4caf50" : "inherit",
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    sx={{
-                      opacity: sidebarOpen ? 1 : 0,
-                      transition: "opacity 0.2s",
-                      "& span": {
-                        fontWeight: currentPath === item.path ? 600 : 400,
+                      minHeight: 48,
+                      justifyContent: sidebarOpen ? "initial" : "center",
+                      px: 2.5,
+                      borderRadius: "8px",
+                      my: 0.5,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                        transform: "translateX(4px)",
                       },
                     }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            </Tooltip>
-          ))}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 0,
+                        mr: sidebarOpen ? 2 : "auto",
+                        justifyContent: "center",
+                        color:
+                          currentPath === item.path ? "#4caf50" : "inherit",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: sidebarOpen ? 1 : 0,
+                        transition: "opacity 0.2s",
+                        "& span": {
+                          fontWeight: currentPath === item.path ? 600 : 400,
+                        },
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </Tooltip>
+            );
+          })}
         </List>
-
         {/* Footer Section */}
         <Divider sx={{ bgcolor: "rgba(255, 255, 255, 0.2)", mt: "auto" }} />
         <Box sx={{ p: 2 }}>

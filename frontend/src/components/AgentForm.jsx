@@ -126,7 +126,7 @@ const AgentForm = ({ userId, onSuccess }) => {
         >
           <FormControl component="fieldset" sx={{ width: "100%" }}>
             <FormLabel component="legend" sx={{ mb: 2 }}>
-              Select Real Estate Service Licensees (RSL)
+              Registered Social Landlords (RSL)
             </FormLabel>
             <FormGroup>
               <Grid container spacing={2}>

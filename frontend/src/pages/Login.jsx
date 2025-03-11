@@ -25,75 +25,47 @@ const LoginPage = () => {
   }, [showRegistration]);
 
   // Handle Login
- const handleLogin = async () => {
-   setError(""); // Clear previous errors
+  const handleLogin = async () => {
+    try {
+      const data = await loginUser(email, password);
 
-   try {
-     const data = await loginUser(email, password);
+      // Clear previous state
+      window.__logoutTimers?.forEach((timer) => clearTimeout(timer));
 
-     // Store token and expiration time in local storage
-     localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.token);
+      const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
+      localStorage.setItem("expiresAt", expiresAt);
 
-     const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
-     localStorage.setItem("expiresAt", expiresAt);
+      // Show success toast
+      toast.success("Login successful! Redirecting to dashboard...");
 
-     // Show success toast
-     toast.success("Login Successful!", {
-       position: "top-right",
-       autoClose: 2000,
-     });
-
-     // Set auto logout only after successful login
-     autoLogout(expiresAt);
-
-     // Redirect after a short delay
-     setTimeout(() => navigate("/dashboard"), 2000);
-   } catch (error) {
-     console.error("Login error:", error);
-
-     // Show only one toast for errors
-     toast.error(error.message || "Invalid credentials", {
-       position: "top-right",
-       autoClose: 3000,
-     });
-
-     // Set error state for UI feedback
-     setError(error.message || "Invalid email or password");
-   }
- };
-
+      // Wait for toast to be visible before redirecting
+      setTimeout(() => {
+        // Force full app state refresh
+        window.location.href = "/dashboard"; // Full page reload instead of navigate()
+      }, 1000);
+    } catch (error) {
+      console.log("Error", error);
+      // Show error toast
+      toast.error("Login failed. Please check your credentials.");
+      setError("Invalid email or password. Please try again.");
+    }
+  };
 
   // Auto Logout Function
- const autoLogout = (expiresAt) => {
-   const timeout = expiresAt - Date.now(); // Get remaining time
+  const autoLogout = (expiresAt) => {
+    const timeout = expiresAt - Date.now();
 
-   if (timeout > 0) {
-     console.log(`Auto logout in ${timeout / 1000} seconds`); // Debugging
+    if (timeout > 0) {
+      const timer = setTimeout(() => {
+        localStorage.clear();
+        window.location.href = "/"; // Full reload
+      }, timeout);
 
-     setTimeout(() => {
-       // Remove token and show toast message
-       localStorage.removeItem("token");
-       localStorage.removeItem("expiresAt");
-
-       console.log("Session expired! Showing toast..."); // Debugging
-
-       toast.info("Session expired, logging out...", {
-         position: "top-right",
-         autoClose: 3000, // Show toast for 3 seconds
-       });
-
-       // Redirect after 3 seconds
-       setTimeout(() => {
-         console.log("Redirecting to login page..."); // Debugging
-         window.location.href = "/";
-       }, 3000);
-     }, timeout);
-   } else {
-     console.log("Token already expired!");
-   }
- };
-
-
+      window.__logoutTimers = window.__logoutTimers || [];
+      window.__logoutTimers.push(timer);
+    }
+  };
 
   // Check token expiration on page load
   useEffect(() => {
@@ -358,7 +330,7 @@ const LoginPage = () => {
                   mt: 2,
                 }}
               >
-                <Typography
+                {/* <Typography
                   component="button"
                   onClick={() => navigate("/forgot-password")}
                   sx={{
@@ -375,7 +347,7 @@ const LoginPage = () => {
                   }}
                 >
                   Forgot Password?
-                </Typography>
+                </Typography> */}
                 <Typography
                   component="button"
                   onClick={() => setShowRegistration(true)}

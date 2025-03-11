@@ -24,14 +24,20 @@ async function loginUser(req, res) {
       userType = "staff";
     }
 
+    console.log("User found:", user); 
+
     if (!user || user.isDeleted) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
+    console.log("Stored Password:", user.password); 
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
+    console.log("User Role:", user.role); 
 
     const expiresIn = "2h";
     const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
@@ -52,6 +58,7 @@ async function loginUser(req, res) {
       .json({ message: "Internal server error", error: error.message });
   }
 }
+
 
 // User Registration
 async function registerUser(req, res) {
@@ -190,14 +197,14 @@ async function updateUserRSLs(req, res) {
     }
 
     res.status(200).json({
-      success: true, // Add success flag
+      success: true, 
       message: "RSLs updated successfully",
       data: updatedUser,
     });
   } catch (error) {
     console.error("Update RSLs error:", error);
     res.status(500).json({
-      success: false, // Add success flag
+      success: false, 
       message: "Internal server error",
       error: error.message,
     });
