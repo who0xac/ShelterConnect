@@ -163,7 +163,7 @@ async function updateUser(req, res) {
 // Get All Agents (role === 2) with their Properties, Tenants, and Staff
 async function getAllAgents(req, res) {
   try {
-    const agents = await UserModel.getAllAgents();
+    const agents = await UserModel.getAllAgents(); // Call the static method
     res.status(200).json({ success: true, data: agents });
   } catch (error) {
     console.error("Get all agents error:", error);

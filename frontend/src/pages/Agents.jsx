@@ -45,7 +45,6 @@ import { getCurrentUser } from "../api/userApi";
 import { getAllAgents, updateUserById } from "../api/userApi.js";
 import { jwtDecode } from "jwt-decode";
 
-
 const drawerWidth = 240;
 
 const Agents = () => {
@@ -57,7 +56,7 @@ const Agents = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openAgentForm, setOpenAgentForm] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState({ _id: null }); 
+  const [selectedAgent, setSelectedAgent] = useState({ _id: null });
   const [editMode, setEditMode] = useState(false);
   const [expandedAgent, setExpandedAgent] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -165,36 +164,17 @@ const Agents = () => {
       toast.error("Error during logout. Please try again.");
     }
   };
-const handleEditClick = (agent) => {
-  if (!agent || !agent._id) {
-    toast.error("Invalid agent data");
-    return;
-  }
-  setSelectedAgent(agent);
-  setEditMode(true);
-  setOpenAgentForm(true);
-};
-
-  const handleToggleStatus = async (agent) => {
-    try {
-      const newStatus = !agent.isActive;
-      const updatedAgent = { ...agent, isActive: newStatus };
-      const result = await updateUserById(agent._id, updatedAgent);
-      if (result.success) {
-        toast.success(
-          `Agent ${newStatus ? "activated" : "deactivated"} successfully!`
-        );
-        fetchAgentsData();
-      } else {
-        toast.error(result.message || "Failed to update agent status");
-      }
-    } catch (error) {
-      console.error("Error updating agent status:", error);
-      toast.error("Network error. Please try again.");
+  const handleEditClick = (agent) => {
+    if (!agent || !agent._id) {
+      toast.error("Invalid agent data");
+      return;
     }
+    setSelectedAgent(agent);
+    setEditMode(true);
+    setOpenAgentForm(true);
   };
 
-  const handleCloseAgentForm = () => {
+    const handleCloseAgentForm = () => {
     setOpenAgentForm(false);
     setEditMode(false);
     setSelectedAgent({ _id: null });
@@ -641,14 +621,7 @@ const handleEditClick = (agent) => {
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Toggle Status">
-                              <Switch
-                                checked={row.isActive}
-                                onChange={() => handleToggleStatus(row)}
-                                color={row.isActive ? "success" : "default"}
-                                size="small"
-                              />
-                            </Tooltip>
+                          
                           </Box>
                         </TableCell>
                       </TableRow>

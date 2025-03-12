@@ -521,19 +521,6 @@ const RegisteredRSL = () => {
                         >
                           No RSL data available
                         </Typography>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<AddIcon />}
-                          onClick={handleOpenRslForm}
-                          sx={{
-                            mt: 1,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                          }}
-                        >
-                          Register RSL
-                        </Button>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -913,9 +900,9 @@ const RegisteredRSL = () => {
 
         <ToastContainer
           position="top-center"
-          autoClose={5000}
+          autoClose={3000}
           hideProgressBar={false}
-          newestOnTop={false}
+          newestOnTop
           closeOnClick
           rtl={false}
           pauseOnFocusLoss

@@ -22,7 +22,6 @@ import {
   TextField,
   CssBaseline,
   Chip,
-  Avatar,
   Tooltip,
   Card,
   CardContent,
@@ -35,15 +34,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import HomeIcon from "@mui/icons-material/Home";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import PropertyForm from "../components/PropertyForm";
-
-// Import API functions
 import { getAllProperties, deletePropertyById } from "../api/propertyApi.js";
-import { getCurrentUser } from "../api/userApi.js";
+import {
+  getCurrentUser,
+  getCurrentUserRoleAndPermissions,
+} from "../api/userApi.js";
 
 const drawerWidth = 240;
 
@@ -65,6 +63,42 @@ const Properties = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
+
+  const [userPermissions, setUserPermissions] = useState({
+    role: null,
+    permissions: [],
+
+  });
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const userRoleAndPermissions = await getCurrentUserRoleAndPermissions();
+        console.log(userRoleAndPermissions);
+        
+
+        const { role, permissions } = userRoleAndPermissions;
+        setUserPermissions({ role, permissions });
+      
+      } catch (error) {
+        console.error("Error checking permissions:", error);
+        setUserPermissions({
+          role: null,
+          canAdd: false,
+          canEdit: false,
+          canDelete: false,
+        });
+      }
+    };
+
+    checkPermissions();
+  }, []);
+
+  // console.log("====================================");
+  // console.log(userPermissions);
+  // console.log("====================================");
+
+
 
   useEffect(() => {
     fetchPropertiesData();
@@ -142,12 +176,14 @@ const Properties = () => {
   };
 
   const handleEditClick = (property) => {
+   
     setSelectedProperty(property);
     setEditMode(true);
     setOpenPropertyForm(true);
   };
 
   const handleDeleteClick = (property) => {
+   
     setSelectedProperty(property);
     setOpenDeleteDialog(true);
   };
@@ -271,26 +307,54 @@ const Properties = () => {
                 Property Management
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleOpenPropertyForm}
-              sx={{
-                bgcolor: "white",
-                color: "#1a237e",
-                "&:hover": { bgcolor: "rgba(255, 255, 255, 0.9)" },
-                fontWeight: "600",
-                px: 3,
-                py: 1.5,
-                borderRadius: "12px",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                textTransform: "none",
-                transition: "all 0.3s ease",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Add New Property
-            </Button>
+            {[1, 2].includes(userPermissions?.role) ? (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenPropertyForm}
+                sx={{
+                  bgcolor: "white",
+                  color: "#1a237e",
+                  "&:hover": { bgcolor: "rgba(255, 255, 255, 0.9)" },
+                  fontWeight: "600",
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                  textTransform: "none",
+                  transition: "all 0.3s ease",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Add New Property
+              </Button>
+            ) : (
+              <>
+                {userPermissions?.permissions[0] === true &&
+                  [3].includes(userPermissions?.role) && (
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleOpenPropertyForm}
+                      sx={{
+                        bgcolor: "white",
+                        color: "#1a237e",
+                        "&:hover": { bgcolor: "rgba(255, 255, 255, 0.9)" },
+                        fontWeight: "600",
+                        px: 3,
+                        py: 1.5,
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                        textTransform: "none",
+                        transition: "all 0.3s ease",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Add New Property
+                    </Button>
+                  )}
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -477,19 +541,6 @@ const Properties = () => {
                         >
                           No property data available
                         </Typography>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<AddIcon />}
-                          onClick={handleOpenPropertyForm}
-                          sx={{
-                            mt: 1,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                          }}
-                        >
-                          Add Property
-                        </Button>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -573,41 +624,161 @@ const Properties = () => {
                       </TableCell>
                       <TableCell sx={{ py: 2.5 }}>
                         <Box sx={{ display: "flex" }}>
-                          <Tooltip title="Edit Property">
-                            <IconButton
-                              color="primary"
-                              onClick={() => handleEditClick(row)}
-                              sx={{
-                                "&:hover": {
-                                  bgcolor: "rgba(25, 118, 210, 0.1)",
-                                  transform: "translateY(-2px)",
-                                },
-                                transition: "all 0.2s",
-                                mr: 1,
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                              }}
-                              size="small"
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete Property">
-                            <IconButton
-                              color="error"
-                              onClick={() => handleDeleteClick(row)}
-                              sx={{
-                                "&:hover": {
-                                  bgcolor: "rgba(211, 47, 47, 0.1)",
-                                  transform: "translateY(-2px)",
-                                },
-                                transition: "all 0.2s",
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                              }}
-                              size="small"
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {/* Admin and manager roles (roles 1 and 2) have full access */}
+                          {[1, 2].includes(userPermissions?.role) ? (
+                            <>
+                              <Tooltip title="Edit Property">
+                                <IconButton
+                                  color="primary"
+                                  onClick={() => handleEditClick(row)}
+                                  sx={{
+                                    "&:hover": {
+                                      bgcolor: "rgba(25, 118, 210, 0.1)",
+                                      transform: "translateY(-2px)",
+                                    },
+                                    transition: "all 0.2s",
+                                    mr: 1,
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                    cursor: "pointer",
+                                  }}
+                                  size="small"
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+
+                              <Tooltip title="Delete Property">
+                                <IconButton
+                                  color="error"
+                                  onClick={() => handleDeleteClick(row)}
+                                  sx={{
+                                    "&:hover": {
+                                      bgcolor: "rgba(211, 47, 47, 0.1)",
+                                      transform: "translateY(-2px)",
+                                    },
+                                    transition: "all 0.2s",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                    cursor: "pointer",
+                                  }}
+                                  size="small"
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <>
+                              {/* Regular users (role 3) need specific edit permission */}
+                              {userPermissions?.permissions[1] === true &&
+                                [3].includes(userPermissions?.role) && (
+                                  <Tooltip
+                                    title={
+                                      userPermissions.role === 3 &&
+                                      !userPermissions.canEdit
+                                        ? "No permission to edit"
+                                        : "Edit Property"
+                                    }
+                                  >
+                                    <span>
+                                      <IconButton
+                                        color="primary"
+                                        onClick={() => handleEditClick(row)}
+                                        disabled={
+                                          userPermissions.role === 3 &&
+                                          !userPermissions.canEdit
+                                        }
+                                        sx={{
+                                          "&:hover": {
+                                            bgcolor:
+                                              userPermissions.role === 3 &&
+                                              !userPermissions.canEdit
+                                                ? "transparent"
+                                                : "rgba(25, 118, 210, 0.1)",
+                                            transform:
+                                              userPermissions.role === 3 &&
+                                              !userPermissions.canEdit
+                                                ? "none"
+                                                : "translateY(-2px)",
+                                          },
+                                          transition: "all 0.2s",
+                                          mr: 1,
+                                          boxShadow:
+                                            "0 2px 4px rgba(0,0,0,0.05)",
+                                          opacity:
+                                            userPermissions.role === 3 &&
+                                            !userPermissions.canEdit
+                                              ? 0.5
+                                              : 1,
+                                          cursor:
+                                            userPermissions.role === 3 &&
+                                            !userPermissions.canEdit
+                                              ? "not-allowed"
+                                              : "pointer",
+                                        }}
+                                        size="small"
+                                      >
+                                        <EditIcon fontSize="small" />
+                                      </IconButton>
+                                    </span>
+                                  </Tooltip>
+                                )}
+
+                              {/* Regular users (role 3) need specific delete permission */}
+                              {userPermissions?.permissions[2] === true &&
+                                [3].includes(userPermissions?.role) && (
+                                  <Tooltip
+                                    title={
+                                      userPermissions.role === 3 &&
+                                      !userPermissions.canDelete
+                                        ? "No permission to delete"
+                                        : "Delete Property"
+                                    }
+                                  >
+                                    <span>
+                                      <IconButton
+                                        color="error"
+                                        onClick={() => handleDeleteClick(row)}
+                                        disabled={
+                                          userPermissions.role === 3 &&
+                                          !userPermissions.canDelete
+                                        }
+                                        sx={{
+                                          "&:hover": {
+                                            bgcolor:
+                                              userPermissions.role === 3 &&
+                                              !userPermissions.canDelete
+                                                ? "transparent"
+                                                : "rgba(211, 47, 47, 0.1)",
+                                            transform:
+                                              userPermissions.role === 3 &&
+                                              !userPermissions.canDelete
+                                                ? "none"
+                                                : "translateY(-2px)",
+                                          },
+                                          transition: "all 0.2s",
+                                          mr: 1,
+                                          boxShadow:
+                                            "0 2px 4px rgba(0,0,0,0.05)",
+                                          opacity:
+                                            userPermissions.role === 3 &&
+                                            !userPermissions.canDelete
+                                              ? 0.5
+                                              : 1,
+                                          cursor:
+                                            userPermissions.role === 3 &&
+                                            !userPermissions.canDelete
+                                              ? "not-allowed"
+                                              : "pointer",
+                                        }}
+                                        size="small"
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </span>
+                                  </Tooltip>
+                                )}
+                            </>
+                          )}
                         </Box>
                       </TableCell>
                     </TableRow>

@@ -30,6 +30,7 @@ const PERMISSION_LABELS = [
   "Edit Tenant",
   "Delete Tenant",
   "SignOut Tenant",
+  "Download Tenant Reports",
 ];
 
 const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
@@ -49,7 +50,7 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     role: 3,
     isDeleted: false,
     status: 1,
-    checkboxValues: Array(9).fill(false),
+    checkboxValues: Array(8).fill(false),
   });
 
   // State for form errors
@@ -62,15 +63,20 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
   };
 
   // Initialize form data if in edit mode
-  useEffect(() => {
-    if (editMode && initialData) {
-      setFormData({
-        ...initialData,
-        password: "",
-        checkboxValues: initialData.permissions || Array(9).fill(false),
-      });
-    }
-  }, [editMode, initialData]);
+ useEffect(() => {
+   if (editMode && initialData) {
+     
+     const permissions = initialData.permissions
+       ? [...initialData.permissions.slice(0, 8)] 
+       : Array(8).fill(false); 
+
+     setFormData({
+       ...initialData,
+       password: "",
+       checkboxValues: permissions,
+     });
+   }
+ }, [editMode, initialData]);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -123,75 +129,76 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+  if (!validateForm()) {
+    return;
+  }
 
-    try {
-      let result;
-      if (editMode) {
-        result = await updateStaffById(initialData._id, formData);
-      } else {
-        result = await createStaff(formData);
-      }
-
-      if (result.success) {
-        toast.success(
-          editMode
-            ? "Staff updated successfully!"
-            : "Staff registered successfully!",
-          {
-            position: "top-center",
-            autoClose: 2000,
-          }
-        );
-
-        if (onSuccess) {
-          onSuccess();
-        }
-
-        setTimeout(() => {
-          if (onClose) {
-            onClose();
-          }
-        }, 2000);
-      } else {
-        toast.error(
-          result.message ||
-            `Failed to ${editMode ? "update" : "register"} staff`,
-          {
-            position: "top-center",
-          }
-        );
-      }
-    } catch (error) {
-      if (error.response) {
-        const errorMessage =
-          error.response.data.message || error.response.statusText;
-
-        if (errorMessage.includes("E11000")) {
-          toast.error("Duplicate entry detected. This record already exists.", {
-            position: "top-center",
-          });
-        } else {
-          toast.error(`Error: ${errorMessage}`, {
-            position: "top-center",
-          });
-        }
-      } else if (error.request) {
-        toast.error("No response from server. Please try again.", {
-          position: "top-center",
-        });
-      } else {
-        toast.error(`Request error: ${error.message}`, {
-          position: "top-center",
-        });
-      }
-    }
+  const { checkboxValues, ...restData } = formData;
+  const staffData = {
+    ...restData,
+    permissions: checkboxValues.slice(0, 8), 
   };
+
+  try {
+    let result;
+    if (editMode) {
+      result = await updateStaffById(initialData._id, staffData);
+    } else {
+      result = await createStaff(staffData);
+    }
+
+    if (result.success) {
+      // Show success toast
+      toast.success(
+        editMode
+          ? "Staff updated successfully!"
+          : "Staff registered successfully!",
+        {
+          position: "top-center",
+          autoClose: 2000,
+          onClose: () => {
+            // Trigger onSuccess (to refresh data) and onClose (to close the form) after the toast closes
+            if (onSuccess) onSuccess();
+            if (onClose) onClose();
+          },
+        }
+      );
+    } else {
+      // Show error toast
+      toast.error(
+        result.message || `Failed to ${editMode ? "update" : "register"} staff`,
+        { position: "top-center" }
+      );
+    }
+  } catch (error) {
+    if (error.response) {
+      const errorMessage =
+        error.response.data.message || error.response.statusText;
+
+      if (errorMessage.includes("E11000")) {
+        toast.error("Duplicate entry detected. This record already exists.", {
+          position: "top-center",
+        });
+      } else {
+        toast.error(`Error: ${errorMessage}`, {
+          position: "top-center",
+        });
+      }
+    } else if (error.request) {
+      toast.error("No response from server. Please try again.", {
+        position: "top-center",
+      });
+    } else {
+      toast.error(`Request error: ${error.message}`, {
+        position: "top-center",
+      });
+    }
+  }
+};
+
 
   return (
     <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 2 }}>

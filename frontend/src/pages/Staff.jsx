@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Alert, Snackbar } from "@mui/material";
 import {
   Box,
   Typography,
@@ -149,22 +150,42 @@ const Staff = () => {
     setOpenDeleteDialog(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    try {
-      const result = await deleteStaffById(selectedStaff._id);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // 'success', 'error', 'warning', 'info'
+  });
+ const handleDeleteConfirm = async () => {
+   try {
+     const result = await deleteStaffById(selectedStaff._id);
 
-      if (result.success) {
-        toast.success("Staff member deleted successfully!");
-        fetchStaffData();
-      } else {
-        toast.error(result.message || "Failed to delete staff member");
-      }
-    } catch (error) {
-      toast.error("Network error. Please try again.");
-    }
-    setOpenDeleteDialog(false);
-    setSelectedStaff(null);
-  };
+     if (result.success) {
+       setSnackbar({
+         open: true,
+         message: "Staff member deleted successfully!",
+         severity: "success",
+       });
+       fetchStaffData();
+     } else {
+       setSnackbar({
+         open: true,
+         message: result.message || "Failed to delete staff member",
+         severity: "error",
+       });
+     }
+   } catch (error) {
+     console.error("Error deleting staff:", error);
+     setSnackbar({
+       open: true,
+       message: "Network error. Please try again.",
+       severity: "error",
+     });
+   }
+   setOpenDeleteDialog(false);
+   setSelectedStaff(null);
+ };
+
+
 
   const handleOpenStaffForm = () => {
     setEditMode(false);
@@ -281,7 +302,6 @@ const Staff = () => {
             </Button>
           </CardContent>
         </Card>
-
         {/* Search and Rows per page */}
         <Card
           elevation={2}
@@ -381,7 +401,6 @@ const Staff = () => {
             </Typography>
           </CardContent>
         </Card>
-
         {/* Table */}
         <Card
           elevation={3}
@@ -528,19 +547,6 @@ const Staff = () => {
                         >
                           No staff data available
                         </Typography>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<AddIcon />}
-                          onClick={handleOpenStaffForm}
-                          sx={{
-                            mt: 1,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                          }}
-                        >
-                          Add Staff Member
-                        </Button>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -684,7 +690,6 @@ const Staff = () => {
             </Table>
           </TableContainer>
         </Card>
-
         {/* Pagination */}
         <Card
           elevation={2}
@@ -779,7 +784,6 @@ const Staff = () => {
             </Button>
           </CardContent>
         </Card>
-
         {/* Delete Confirmation Dialog */}
         <Dialog
           open={openDeleteDialog}
@@ -860,7 +864,6 @@ const Staff = () => {
             </Button>
           </DialogActions>
         </Dialog>
-
         {/* Staff Form Dialog */}
         <Dialog
           open={openStaffForm}
@@ -915,12 +918,28 @@ const Staff = () => {
             />
           </DialogContent>
         </Dialog>
-
+       
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={2000}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+        ;
         <ToastContainer
           position="top-center"
           autoClose={5000}
           hideProgressBar={false}
-          newestOnTop={false}
+          newestOnTop
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
@@ -928,7 +947,15 @@ const Staff = () => {
           pauseOnHover
           style={{
             fontFamily: "Poppins, sans-serif",
-            zIndex: 9999,
+            zIndex: 9999999,
+          }}
+          toastStyle={{
+            background: "white",
+            color: "#333",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            fontSize: "14px",
           }}
         />
       </Box>

@@ -201,3 +201,56 @@ export const updateUserRSLs = async (userId, rslIds) => {
     throw error;
   }
 };
+
+export const getCurrentUserRoleAndPermissions = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      return null;
+    }
+
+    // Decode token to get user ID
+    const decoded = jwtDecode(token);
+    const userId = decoded.id;
+
+    // Set authorization headers
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    let response;
+
+    try {
+      // First, try fetching from /api/users/:id
+      response = await api.get(`/${userId}`, config);
+    } catch (error) {
+      console.warn("User not found in /api/users, checking /api/staff...");
+
+      try {
+        // If user is not found, try fetching from /api/staff/:id
+        response = await axios.get(`${API_BASE_URL2}/${userId}`, config);
+      } catch (staffError) {
+        console.error("User not found in both APIs.");
+        return null;
+      }
+    }
+
+    const userData = response.data?.data;
+    if (!userData) {
+      console.error("User data is empty.");
+      return null;
+    }
+
+    // Return role and permissions of the current user
+    return {
+      role: userData.role,
+      permissions: userData.permissions,
+    };
+  } catch (error) {
+    console.error("Error fetching current user role and permissions:", error);
+    return null;
+  }
+};

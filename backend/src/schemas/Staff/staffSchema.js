@@ -22,7 +22,7 @@ const staffSchema = new mongoose.Schema(
     permissions: {
       type: [Boolean],
       required: true,
-      default: Array(9).fill(false),
+      default: Array(8).fill(false),
     },
   },
   { timestamps: true }

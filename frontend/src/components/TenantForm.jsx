@@ -13,10 +13,8 @@ import {
   Checkbox,
   Typography,
   MenuItem,
-  Divider,
   Select,
   InputLabel,
-  Switch,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -28,48 +26,42 @@ import SignatureCanvas from "react-signature-canvas";
 import { toast } from "react-toastify";
 import { createTenant, updateTenantById } from "../api/tenantApi";
 import { getAllProperties } from "../api/propertyApi";
+import { getCurrentUserRoleAndPermissions } from "../api/userApi";
 
-
-
- const SignaturePad = ({ onSave, initialSignature }) => {
+const SignaturePad = ({ onSave, initialSignature }) => {
   const [showPad, setShowPad] = useState(false);
   const sigCanvas = useRef(null);
- 
 
   const handleSave = () => {
     if (sigCanvas.current.isEmpty()) {
       toast.warning("Please provide a signature");
       return;
     }
- 
 
     // Get the full canvas data URL directly
     const signature = sigCanvas.current.toDataURL();
     onSave(signature);
     setShowPad(false);
   };
- 
 
   const handleClear = () => {
     sigCanvas.current.clear();
   };
- 
 
   return (
     <Box>
-    <SignatureCanvas
-      ref={sigCanvas}
-      penColor="black"
-      canvasProps={{ width: 300, height: 100 }}
-      onEnd={handleSave}
-    />
+      <SignatureCanvas
+        ref={sigCanvas}
+        penColor="black"
+        canvasProps={{ width: 300, height: 100 }}
+        onEnd={handleSave}
+      />
       <Button variant="outlined" size="small" onClick={handleClear}>
-       Clear
+        Clear
       </Button>
     </Box>
   );
- };
-
+};
 
 const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const [loading, setLoading] = useState(false);
@@ -79,10 +71,40 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [occupiedRooms, setOccupiedRooms] = useState([]);
+  const [userPermissions, setUserPermissions] = useState({
+    role: null,
+    permissions: [],
+  });
+
 
   const handleAccordionChange = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
   };
+
+   useEffect(() => {
+        const checkPermissions = async () => {
+          try {
+            const userRoleAndPermissions =
+              await getCurrentUserRoleAndPermissions();
+            console.log(userRoleAndPermissions);
+  
+            const { role, permissions } = userRoleAndPermissions;
+            setUserPermissions({ role, permissions });
+          } catch (error) {
+            console.error("Error checking permissions:", error);
+            setUserPermissions({
+              role: null,
+              canSignOut: false,
+            });
+          }
+        };
+  
+        checkPermissions();
+      }, []);
+  
+      // console.log("====================================");
+      // console.log(userPermissions);
+      // console.log("====================================");
 
   // Initialize form data with empty values or provided initial data
   const [formData, setFormData] = useState({
@@ -178,21 +200,21 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
       ukEntryDate: "",
     },
     termsAndConditions: {
-      supportChecklist: { agreed: false, signature: "" },
-      licenseToOccupy: { agreed: false, signature: "" },
-      weeklyServiceCharge: { agreed: false, signature: "" },
-      missingPersonForm: { agreed: false, signature: "" },
-      tenantPhotographicID: { agreed: false, signature: "" },
-      personalDetailsAgreement: { agreed: false, signature: "" },
-      licenseChargePayments: { agreed: false, signature: "" },
-      fireEvacuationProcedure: { agreed: false, signature: "" },
-      supportAgreement: { agreed: false, signature: "" },
-      complaintsProcedure: { agreed: false, signature: "" },
-      confidentialityWaiver: { agreed: false, signature: "" },
-      nilIncomeFormAgreement: { agreed: false, signature: "" },
-      authorizationForm: { agreed: false, signature: "" },
-      supportServices: { agreed: false, signature: "" },
-      staffAgreement: { agreed: false, signature: "" },
+      supportChecklist: { agreed: false },
+      licenseToOccupy: { agreed: false},
+      weeklyServiceCharge: { agreed: false},
+      missingPersonForm: { agreed: false},
+      tenantPhotographicID: { agreed: false},
+      personalDetailsAgreement: { agreed: false},
+      licenseChargePayments: { agreed: false },
+      fireEvacuationProcedure: { agreed: false },
+      supportAgreement: { agreed: false},
+      complaintsProcedure: { agreed: false},
+      confidentialityWaiver: { agreed: false},
+      nilIncomeFormAgreement: { agreed: false },
+      authorizationForm: { agreed: false },
+      supportServices: { agreed: false },
+      staffAgreement: { agreed: false},
     },
     status: 1,
   });
@@ -464,34 +486,51 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
   const validate = () => {
     const newErrors = {};
-    // Basic validation
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     if (!formData.property) newErrors.property = "Property is required";
     if (!formData.roomNumber) newErrors.roomNumber = "Room number is required";
-    if (!formData.signInDate) newErrors.signInDate = "Sign in date is required";
-    if (!formData.dateOfAssessment)
+
+    // Date validations
+    if (!formData.signInDate) {
+      newErrors.signInDate = "Sign in date is required";
+    } else {
+      const signInDate = new Date(formData.signInDate);
+      if (signInDate > today) {
+        newErrors.signInDate = "Sign in date cannot be in the future";
+      }
+    }
+
+    if (!formData.dateOfAssessment) {
       newErrors.dateOfAssessment = "Assessment date is required";
-    // Personal details validation
-    if (!formData.personalDetails.firstName)
-      newErrors["personalDetails.firstName"] = "First name is required";
-    if (!formData.personalDetails.lastName)
-      newErrors["personalDetails.lastName"] = "Last name is required";
-    if (!formData.personalDetails.nationalInsuranceNumber)
-      newErrors["personalDetails.nationalInsuranceNumber"] =
-        "NI number is required";
-    if (!formData.personalDetails.gender)
-      newErrors["personalDetails.gender"] = "Gender is required";
-    if (!formData.personalDetails.dateOfBirth)
+    } 
+
+    // Personal details validations
+    const personalDetails = formData.personalDetails || {};
+    if (!personalDetails.dateOfBirth) {
       newErrors["personalDetails.dateOfBirth"] = "Date of birth is required";
-    if (!formData.personalDetails.maritalStatus)
+    } else {
+      const dobDate = new Date(personalDetails.dateOfBirth);
+      if (dobDate > today) {
+        newErrors["personalDetails.dateOfBirth"] =
+          "Date of birth cannot be in the future";
+      }
+    }
+
+    // Add other required field validations
+    if (!personalDetails.firstName)
+      newErrors["personalDetails.firstName"] = "First name is required";
+    if (!personalDetails.lastName)
+      newErrors["personalDetails.lastName"] = "Last name is required";
+    if (!personalDetails.nationalInsuranceNumber)
+      newErrors["personalDetails.nationalInsuranceNumber"] =
+        "NINO Example: JM123456A";
+    if (!personalDetails.gender)
+      newErrors["personalDetails.gender"] = "Gender is required";
+    if (!personalDetails.maritalStatus)
       newErrors["personalDetails.maritalStatus"] = "Marital status is required";
-    // Validation for other required fields
-    if (formData.debts === null || formData.debts === undefined)
-      newErrors.debts = "This field is required";
-    if (
-      formData.fullCheckCompleted === null ||
-      formData.fullCheckCompleted === undefined
-    )
-      newErrors.fullCheckCompleted = "This field is required";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -500,7 +539,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
     const { name, value, type, checked } = e.target;
     const path = name.split(".");
     if (path.length === 3) {
-      // For nested properties like termsAndConditions.supportChecklist.agreed
+      
       setFormData((prev) => ({
         ...prev,
         [path[0]]: {
@@ -546,43 +585,43 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
     }));
   };
 
-const handleSignatureChange = (fieldName, signature) => {
-  console.log("Updating Signature:", fieldName, signature); // Debug: Log the update
-  setFormData((prev) => ({
-    ...prev,
-    [fieldName]: signature, // Update the correct field in formData
-  }));
-};
+  const handleSignatureChange = (fieldName, signature) => {
+    console.log("Updating Signature:", fieldName, signature); // Debug: Log the update
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: signature, // Update the correct field in formData
+    }));
+  };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  console.log("Form Data Before Submission:", formData); // Debug: Log formData
+    console.log("Form Data Before Submission:", formData); // Debug: Log formData
 
-  if (!validate()) {
-    toast.error("Please correct the errors in the form");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    if (editMode && initialData._id) {
-      await updateTenantById(initialData._id, formData);
-      toast.success("Tenant updated successfully!");
-    } else {
-      await createTenant(formData);
-      toast.success("Tenant added successfully!");
+    if (!validate()) {
+      toast.error("Please correct the errors in the form");
+      return;
     }
 
-    onSuccess(); // Callback for success
-  } catch (error) {
-    console.error("Form submission error:", error);
-    toast.error(error.response?.data?.message || "An error occurred");
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+
+    try {
+      if (editMode && initialData._id) {
+        await updateTenantById(initialData._id, formData);
+        toast.success("Tenant updated successfully!");
+      } else {
+        await createTenant(formData);
+        toast.success("Tenant added successfully!");
+      }
+
+      onSuccess(); // Callback for success
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast.error(error.response?.data?.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -655,29 +694,105 @@ const handleSubmit = async (e) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Sign In Date *"
-                  type="date"
-                  name="signInDate"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.signInDate}
-                  onChange={handleChange}
-                  error={!!errors.signInDate}
-                  helperText={errors.signInDate}
-                  required
-                />
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="Sign In Date *"
+                    value={
+                      formData.signInDate ? new Date(formData.signInDate) : null
+                    }
+                    onChange={(newValue) => {
+                      const isoDate = newValue
+                        ? newValue.toISOString().split("T")[0]
+                        : "";
+                      setFormData({ ...formData, signInDate: isoDate });
+                    }}
+                    maxDate={new Date()}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        error={!!errors.signInDate}
+                        helperText={errors.signInDate}
+                      />
+                    )}
+                  />
+                </LocalizationProvider>
               </Grid>
+              {/* In the Basic Information Section */}
               <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Sign Out Date"
-                  type="date"
-                  name="signOutDate"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.signOutDate || ""}
-                  onChange={handleChange}
-                />
+                {[1, 2].includes(userPermissions?.role) ? (
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker
+                      label="Sign Out Date"
+                      value={
+                        formData.signOutDate
+                          ? new Date(formData.signOutDate)
+                          : null
+                      }
+                      onChange={(newValue) => {
+                        const isoDate = newValue
+                          ? newValue.toISOString().split("T")[0]
+                          : "";
+                        setFormData({ ...formData, signOutDate: isoDate });
+                      }}
+                      minDate={
+                        formData.signInDate
+                          ? new Date(formData.signInDate)
+                          : null
+                      }
+                      maxDate={new Date()}
+                      disabled={!formData.signInDate}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          fullWidth
+                          error={!!errors.signOutDate}
+                          helperText={errors.signOutDate}
+                        />
+                      )}
+                    />
+                  </LocalizationProvider>
+                ) : (
+                  <>
+                    {userPermissions?.permissions[6] === true &&
+                      [3].includes(userPermissions?.role) && (
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                          <DatePicker
+                            label="Sign Out Date"
+                            value={
+                              formData.signOutDate
+                                ? new Date(formData.signOutDate)
+                                : null
+                            }
+                            onChange={(newValue) => {
+                              const isoDate = newValue
+                                ? newValue.toISOString().split("T")[0]
+                                : "";
+                              setFormData({
+                                ...formData,
+                                signOutDate: isoDate,
+                              });
+                            }}
+                            minDate={
+                              formData.signInDate
+                                ? new Date(formData.signInDate)
+                                : null
+                            }
+                            maxDate={new Date()}
+                            disabled={!formData.signInDate}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                fullWidth
+                                error={!!errors.signOutDate}
+                                helperText={errors.signOutDate}
+                              />
+                            )}
+                          />
+                        </LocalizationProvider>
+                      )}
+                  </>
+                )}
               </Grid>
               <Grid item xs={12} md={4}>
                 <TextField
@@ -690,7 +805,6 @@ const handleSubmit = async (e) => {
                   onChange={handleChange}
                   error={!!errors.dateOfAssessment}
                   helperText={errors.dateOfAssessment}
-                  required
                 />
               </Grid>
 
@@ -837,7 +951,6 @@ const handleSubmit = async (e) => {
                   onChange={handleChange}
                   error={!!errors["personalDetails.firstName"]}
                   helperText={errors["personalDetails.firstName"]}
-                  required
                 />
               </Grid>
 
@@ -860,7 +973,6 @@ const handleSubmit = async (e) => {
                   onChange={handleChange}
                   error={!!errors["personalDetails.lastName"]}
                   helperText={errors["personalDetails.lastName"]}
-                  required
                 />
               </Grid>
 
@@ -875,14 +987,12 @@ const handleSubmit = async (e) => {
                   onChange={handleChange}
                   error={!!errors["personalDetails.nationalInsuranceNumber"]}
                   helperText={errors["personalDetails.nationalInsuranceNumber"]}
-                  required
                 />
               </Grid>
 
               <Grid item xs={12} md={4}>
                 <FormControl
                   fullWidth
-                  required
                   error={!!errors["personalDetails.maritalStatus"]}
                 >
                   <InputLabel>Marital Status *</InputLabel>
@@ -912,7 +1022,6 @@ const handleSubmit = async (e) => {
               <Grid item xs={12} md={4}>
                 <FormControl
                   fullWidth
-                  required
                   error={!!errors["personalDetails.gender"]}
                 >
                   <InputLabel>Gender *</InputLabel>
@@ -939,18 +1048,37 @@ const handleSubmit = async (e) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Date of Birth *"
-                  type="date"
-                  name="personalDetails.dateOfBirth"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.personalDetails?.dateOfBirth || ""}
-                  onChange={handleChange}
-                  error={!!errors["personalDetails.dateOfBirth"]}
-                  helperText={errors["personalDetails.dateOfBirth"]}
-                  required
-                />
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="Date of Birth *"
+                    value={
+                      formData.personalDetails?.dateOfBirth
+                        ? new Date(formData.personalDetails.dateOfBirth)
+                        : null
+                    }
+                    onChange={(newValue) => {
+                      const isoDate = newValue
+                        ? newValue.toISOString().split("T")[0]
+                        : "";
+                      setFormData({
+                        ...formData,
+                        personalDetails: {
+                          ...formData.personalDetails,
+                          dateOfBirth: isoDate,
+                        },
+                      });
+                    }}
+                    maxDate={new Date()}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        error={!!errors["personalDetails.dateOfBirth"]}
+                        helperText={errors["personalDetails.dateOfBirth"]}
+                      />
+                    )}
+                  />
+                </LocalizationProvider>
               </Grid>
 
               <Grid item xs={12} md={4}>
@@ -1581,11 +1709,7 @@ const handleSubmit = async (e) => {
               </Grid>
 
               <Grid item xs={12}>
-                <FormControl
-                  component="fieldset"
-                  required
-                  error={!!errors.debts}
-                >
+                <FormControl component="fieldset" error={!!errors.debts}>
                   <FormLabel component="legend">
                     Do you have any debts?
                   </FormLabel>
@@ -2095,7 +2219,6 @@ const handleSubmit = async (e) => {
               <Grid item xs={12}>
                 <FormControl
                   component="fieldset"
-                  required
                   error={!!errors.fullCheckCompleted}
                 >
                   <FormLabel component="legend">
@@ -2284,6 +2407,7 @@ const handleSubmit = async (e) => {
         {/* Action Buttons */}
         <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
           <Button
+            type="button"
             variant="outlined"
             onClick={onClose}
             sx={{ mr: 2 }}

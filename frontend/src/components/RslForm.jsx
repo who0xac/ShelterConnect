@@ -175,26 +175,29 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
       }
 
       // Handle API response
+      // In RslForm.jsx, modify the handleSubmit function:
       if (result.success) {
+        // Call onSuccess first to update the parent component's state
+        if (onSuccess) {
+          onSuccess();
+        }
+
+        // Use the toast with a callback on close
         toast.success(
           editMode
             ? "RSL updated successfully!"
             : "RSL registered successfully!",
           {
             position: "top-center",
-            autoClose: 2000,
+            autoClose: 3000,
+            onClose: () => {
+              // Only close the dialog after the toast has finished
+              if (onClose) {
+                onClose();
+              }
+            },
           }
         );
-
-        if (onSuccess) {
-          onSuccess(); 
-        }
-
-        setTimeout(() => {
-          if (onClose) {
-            onClose(); 
-          }
-        }, 2000);
       } else {
         toast.error(
           result.message || `Failed to ${editMode ? "update" : "register"} RSL`,
@@ -422,17 +425,7 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
           </Grid>
         </form>
       </Paper>
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+     
     </Box>
   );
 };
