@@ -1,51 +1,8 @@
 import PropertyModel from "../../models/Properties/propertiesModel.js";
 import UserModel from "../../models/Users/userModel.js";
 import StaffModel from "../../models/Staff/staffModel.js";
-import RSLModel from "../../models/RSL/rslModel.js"; 
-
-
-async function getFilteredRSLs(user) {
-  let rsls = []; // Placeholder for filtered RSLs
-
-  // Fetch all RSLs from the database using RSLModel's method
-  const allRSLs = await RSLModel.getAllRSLs();
-
-  // Role 1: Show all RSLs (Admin/Global Access)
-  if (user.role === 1) {
-    rsls = allRSLs;
-  }
-  // Role 2: Show only RSLs in the user's rsls array
-  else if (user.role === 2) {
-    // Ensure the comparison is done with the same type (e.g., string or ObjectId)
-    rsls = allRSLs.filter((rsl) =>
-      user.rsls.some((userRslId) => userRslId.toString() === rsl._id.toString())
-    );
-  }
-  // Role 3: Show RSLs based on who added the user
-  else if (user.role === 3) {
-    // Fetch the user who added this user (addedBy)
-    const addedByUser = await UserModel.findById(user.addedBy);
-
-    if (addedByUser) {
-      // If added by Role 1, show all RSLs
-      if (addedByUser.role === 1) {
-        rsls = allRSLs;
-      }
-      // If added by Role 2, show RSLs from addedByUser's rsls array
-      else if (addedByUser.role === 2) {
-        rsls = allRSLs.filter((rsl) =>
-          addedByUser.rsls.some(
-            (addedByRslId) => addedByRslId.toString() === rsl._id.toString()
-          )
-        );
-      }
-    }
-  }
-
-  return rsls;
-}
-
-
+import RSLModel from "../../models/RSL/rslModel.js";
+import mongoose from "mongoose";
 
 // Create Property
 async function createProperty(req, res) {
@@ -70,8 +27,6 @@ async function createProperty(req, res) {
       });
     }
 
-    // Ensure rslTypeGroup is a valid ObjectId
-    const mongoose = require("mongoose");
     const isValidObjectId = mongoose.Types.ObjectId.isValid(rslTypeGroup);
     if (!isValidObjectId) {
       return res.status(400).json({
@@ -80,10 +35,9 @@ async function createProperty(req, res) {
       });
     }
 
-    // Create Property
     const property = await PropertyModel.createProperty({
       addedBy,
-      rslTypeGroup: new mongoose.Types.ObjectId(rslTypeGroup), // Convert to ObjectId
+      rslTypeGroup: new mongoose.Types.ObjectId(rslTypeGroup),
       ...propertyData,
     });
 
@@ -102,41 +56,39 @@ async function createProperty(req, res) {
 }
 
 // Get Property by ID
+// Get Property by ID
 async function getPropertyById(req, res) {
   try {
     const propertyId = req.params.id;
     const userId = req.user.id;
+    const userRole = req.user.role; // Assuming role is available in req.user
+
     let user = await UserModel.findById(userId);
     if (!user) {
       user = await StaffModel.findStaffById(userId);
     }
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Get property and filter RSLs based on user role
     const property = await PropertyModel.findPropertyById(propertyId);
     if (!property) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Property not found" });
+      return res.status(404).json({ success: false, message: "Property not found" });
     }
 
-    // Filter RSLs for this user
-    const filteredRSLs = await getFilteredRSLs(user);
-    property.rsls = property.rsls.filter((rsl) =>
-      filteredRSLs.some((filteredRSL) => filteredRSL._id.equals(rsl._id))
-    );
+    // For role 3 users, check if they own the property
+    if (userRole === 3 && property.addedBy.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to access this property.",
+      });
+    }
 
     res.status(200).json({ success: true, data: property });
   } catch (error) {
     console.error("Get property by ID error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error retrieving property" });
+    res.status(500).json({ success: false, message: "Error retrieving property" });
   }
 }
 
@@ -155,24 +107,7 @@ async function getAllProperties(req, res) {
         .json({ success: false, message: "User not found" });
     }
 
-    // Get all properties
-    let properties = await PropertyModel.getAllProperties();
-
-    // Filter RSLs based on user role
-    properties = await Promise.all(
-      properties.map(async (property) => {
-        // Get filtered RSLs for this user
-        const filteredRSLs = await getFilteredRSLs(user);
-
-        // Update property.rsls with filtered RSLs
-        property.rsls = property.rsls.filter((rsl) =>
-          filteredRSLs.some((filteredRSL) => filteredRSL._id.equals(rsl._id))
-        );
-
-        return property;
-      })
-    );
-
+    const properties = await PropertyModel.getAllProperties();
     res.status(200).json({ success: true, data: properties });
   } catch (error) {
     console.error("Get all properties error:", error);
@@ -186,9 +121,13 @@ async function getAllProperties(req, res) {
 async function getUserProperties(req, res) {
   try {
     const userId = req.user.id;
-    let user = await UserModel.findById(userId);
-    if (!user) {
+    const userRole = req.user.role;
+
+    let user;
+    if (userRole === 3) {
       user = await StaffModel.findStaffById(userId);
+    } else {
+      user = await UserModel.findById(userId);
     }
 
     if (!user) {
@@ -197,24 +136,7 @@ async function getUserProperties(req, res) {
         .json({ success: false, message: "User not found" });
     }
 
-    // Get properties for the user
-    let properties = await PropertyModel.getPropertiesByUser(userId);
-
-    // Filter RSLs based on user role
-    properties = await Promise.all(
-      properties.map(async (property) => {
-        // Get filtered RSLs for this user
-        const filteredRSLs = await getFilteredRSLs(user);
-
-        // Update property.rsls with filtered RSLs
-        property.rsls = property.rsls.filter((rsl) =>
-          filteredRSLs.some((filteredRSL) => filteredRSL._id.equals(rsl._id))
-        );
-
-        return property;
-      })
-    );
-
+    const properties = await PropertyModel.getPropertiesByUser(userId);
     res.status(200).json({ success: true, data: properties });
   } catch (error) {
     console.error("Get user properties error:", error);
@@ -225,17 +147,26 @@ async function getUserProperties(req, res) {
 }
 
 // Update Property
+// controllers/Property/index.js
+
 async function updateProperty(req, res) {
   try {
+    const { _id, addedBy, ...updateData } = req.body; // Remove addedBy from update data
+
+    // For staff members (role 3), ensure they can't change ownership
+    if (req.user.role === 3) {
+      delete updateData.addedBy; // Prevent staff from changing ownership
+    }
+
     const updatedProperty = await PropertyModel.updatePropertyById(
       req.params.id,
-      req.body
+      updateData // Use sanitized data
     );
+
     if (!updatedProperty) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Property not found" });
+      return res.status(404).json({ success: false, message: "Property not found" });
     }
+
     res.status(200).json({
       success: true,
       message: "Property updated successfully",
@@ -243,12 +174,9 @@ async function updateProperty(req, res) {
     });
   } catch (error) {
     console.error("Update property error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error updating property" });
+    res.status(500).json({ success: false, message: "Error updating property" });
   }
 }
-
 // Delete Property
 async function deleteProperty(req, res) {
   try {

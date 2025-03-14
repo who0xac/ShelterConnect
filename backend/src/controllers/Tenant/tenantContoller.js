@@ -1,6 +1,7 @@
 import TenantModel from "../../models/Tenant/tenantModel.js";
 import PropertyModel from "../../models/Properties/propertiesModel.js";
 import UserModel from "../../models/Users/userModel.js";
+import StaffModel from "../../models/Staff/staffModel.js"; 
 
 // Create Tenant
 async function createTenant(req, res) {
@@ -23,12 +24,16 @@ async function createTenant(req, res) {
       });
     }
 
-    // Check if user exists
-    const addedByUser = await UserModel.findById(addedBy);
+    // Check if user exists in UserModel or StaffModel
+    let addedByUser = await UserModel.findById(addedBy);
+    if (!addedByUser) {
+      addedByUser = await StaffModel.findStaffById(addedBy); // Check StaffModel if not found in UserModel
+    }
+
     if (!addedByUser) {
       return res.status(404).json({
         success: false,
-        message: "User not found for the given addedBy ID.",
+        message: "User or Staff not found for the given addedBy ID.",
       });
     }
 
@@ -94,12 +99,17 @@ async function getAllTenants(req, res) {
 }
 
 // Update Tenant
+// Update Tenant
 async function updateTenant(req, res) {
   try {
     console.log("Request Body:", req.body); // Debug: Log the request body
 
-    const { tenantSignature, supportWorkerSignature, ...updatedData } =
-      req.body;
+    const { _id, addedBy, tenantSignature, supportWorkerSignature, ...updatedData } = req.body;
+
+    // For staff members (role 3), ensure they can't change ownership
+    if (req.user.role === 3) {
+      delete updatedData.addedBy; // Prevent staff from changing ownership
+    }
 
     // Update tenant with signature data
     const updatedTenant = await TenantModel.updateTenantById(req.params.id, {
