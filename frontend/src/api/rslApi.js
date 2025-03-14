@@ -83,23 +83,31 @@ export const getRSLNames = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}`);
 
-    let rslNames = [];
+    let rslInfo = [];
 
     // Handle both response formats: array and { data: array }
     if (Array.isArray(response.data)) {
-      rslNames = response.data.map((rsl) => rsl.rslName);
+      rslInfo = response.data.map((rsl) => ({
+        id: rsl._id, // Use MongoDB's native _id
+        rslName: rsl.rslName,
+        originalObject: rsl, // Optionally store full object if needed
+      }));
     } else if (response.data?.data && Array.isArray(response.data.data)) {
-      rslNames = response.data.data.map((rsl) => rsl.rslName);
+      rslInfo = response.data.data.map((rsl) => ({
+        id: rsl._id, // Use MongoDB's native _id
+        rslName: rsl.rslName,
+        
+      }));
     } else {
       console.error("Unexpected response format:", response.data);
       throw new Error("Unexpected response format from the API.");
     }
 
-    console.log("Extracted RSL names:", rslNames);
-    return rslNames;
+    console.log("Extracted RSL info:", rslInfo);
+    return rslInfo;
   } catch (error) {
     console.error(
-      "Error fetching RSL names:",
+      "Error fetching RSL info:",
       error.response?.data || error.message
     );
     return [];

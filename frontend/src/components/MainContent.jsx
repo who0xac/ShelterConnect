@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -11,6 +11,8 @@ import {
   alpha,
   Tab,
   Tabs,
+  Button,
+  Tooltip,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -19,6 +21,7 @@ import {
   Group as StaffIcon,
   Assessment as ReportIcon,
   PieChart as ChartIcon,
+  DownloadSharp as DownloadIcon,
 } from "@mui/icons-material";
 import { jwtDecode } from "jwt-decode";
 import { getAllAgents } from "../api/userApi.js";
@@ -35,17 +38,18 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const MainContent = ({ sidebarOpen, drawerWidth }) => {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [userName, setUserName] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [data, setData] = useState({
     tenants: 0,
@@ -55,7 +59,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     agents: 0,
     rsls: 0,
   });
-
   const [visualizationData, setVisualizationData] = useState({
     propertyTypes: [],
     cityDistribution: [],
@@ -67,7 +70,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     furnishingStatus: [],
     financialMetrics: [],
   });
-
   const COLORS = [
     "#3f51b5",
     "#00acc1",
@@ -76,11 +78,56 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     "#4caf50",
     "#9c27b0",
   ];
+  const analyticsRef = useRef();
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  // -------------------------------------------------------------------
+  // Enhanced PDF Generation: Improved header/footer styling & meta info
+  // -------------------------------------------------------------------
+  const handleDownloadPDF = async () => {
+    try {
+      const element = analyticsRef.current;
+      const canvas = await html2canvas(element, { scale: 3 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+
+      // Header (username removed)
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(18);
+      pdf.text("Detailed Analytics Report", pageWidth / 2, 15, {
+        align: "center",
+      });
+      pdf.setLineWidth(0.5);
+      pdf.line(10, 20, pageWidth - 10, 20);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Report generated", 10, 28);
+
+      // Add image (with margins)
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", margin, 35, imgWidth, imgHeight);
+
+      // Footer: Add page number at the bottom center
+      pdf.setFontSize(10);
+      pdf.text(
+        "Page 1",
+        pageWidth / 2,
+        pdf.internal.pageSize.getHeight() - 10,
+        { align: "center" }
+      );
+
+      pdf.save("detailed_analytics_report.pdf");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
+  // ----------------------------------------------------
+  // Data fetching and processing functions (unchanged)
+  // ----------------------------------------------------
+  // Updated function: Remove any username handling from the token
   const getUserRoleFromToken = () => {
     try {
       const token = localStorage.getItem("token");
@@ -89,7 +136,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         return null;
       }
       const decoded = jwtDecode(token);
-      setUserName(decoded.name || "");
       return decoded.role || null;
     } catch (error) {
       console.error("Error decoding token:", error);
@@ -111,37 +157,60 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
   };
 
   const processVisualizationData = (propertyData, tenantData) => {
-    // Property-related visualizations
     const propertyTypes = [
-      { name: "Shared Accommodations", value: propertyData.filter(p => p.sharedWithOther).length },
-      { name: "Bedsits", value: propertyData.filter(p => p.bedsit).length },
-      { name: "Self-Contained Flats", value: propertyData.filter(p => p.selfContainedFlat).length },
+      {
+        name: "Shared Accommodations",
+        value: propertyData.filter((p) => p.sharedWithOther).length,
+      },
+      { name: "Bedsits", value: propertyData.filter((p) => p.bedsit).length },
+      {
+        name: "Self-Contained Flats",
+        value: propertyData.filter((p) => p.selfContainedFlat).length,
+      },
     ];
-
     const cityDistribution = Object.entries(
       propertyData.reduce((acc, p) => {
-        const city = p.city || 'Unknown';
+        const city = p.city || "Unknown";
         acc[city] = (acc[city] || 0) + 1;
         return acc;
       }, {})
     ).map(([city, count]) => ({ city, count }));
-
     const sharedStatus = [
-      { name: "Shared Properties", value: propertyData.filter(p => p.sharedWithOther).length },
-      { name: "Non-Shared Properties", value: propertyData.length - propertyData.filter(p => p.sharedWithOther).length },
+      {
+        name: "Shared Properties",
+        value: propertyData.filter((p) => p.sharedWithOther).length,
+      },
+      {
+        name: "Non-Shared Properties",
+        value:
+          propertyData.length -
+          propertyData.filter((p) => p.sharedWithOther).length,
+      },
     ];
-
     const furnishingStatus = [
-      { name: "Unfurnished", value: propertyData.filter(p => p.unfurnished).length },
-      { name: "Part-Furnished", value: propertyData.filter(p => p.partFurnished).length },
-      { name: "Fully Furnished", value: propertyData.filter(p => p.fullyFurnished).length },
+      {
+        name: "Unfurnished",
+        value: propertyData.filter((p) => p.unfurnished).length,
+      },
+      {
+        name: "Part-Furnished",
+        value: propertyData.filter((p) => p.partFurnished).length,
+      },
+      {
+        name: "Fully Furnished",
+        value: propertyData.filter((p) => p.fullyFurnished).length,
+      },
     ];
-
     const financialMetrics = Object.entries(
       propertyData.reduce((acc, p) => {
-        const city = p.city || 'Unknown';
+        const city = p.city || "Unknown";
         if (!acc[city]) {
-          acc[city] = { basicRent: 0, serviceCharges: 0, eligibleRent: 0, count: 0 };
+          acc[city] = {
+            basicRent: 0,
+            serviceCharges: 0,
+            eligibleRent: 0,
+            count: 0,
+          };
         }
         acc[city].basicRent += p.basicRent;
         acc[city].serviceCharges += p.totalServiceCharges;
@@ -155,35 +224,44 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
       serviceCharges: data.serviceCharges / data.count,
       eligibleRent: data.eligibleRent / data.count,
     }));
-
-    // Tenant-related visualizations
     const ethnicOrigin = Object.entries(
       tenantData.reduce((acc, t) => {
-        const origin = t.ethnicOrigin || 'Unknown';
+        const origin = t.ethnicOrigin || "Unknown";
         acc[origin] = (acc[origin] || 0) + 1;
         return acc;
       }, {})
     ).map(([ethnicity, count]) => ({ ethnicity, count }));
-
     const criminalRecord = [
-      { name: "Has Criminal Record", value: tenantData.filter(t => t.criminalRecords).length },
-      { name: "No Criminal Record", value: tenantData.length - tenantData.filter(t => t.criminalRecords).length },
+      {
+        name: "Has Criminal Record",
+        value: tenantData.filter((t) => t.criminalRecords).length,
+      },
+      {
+        name: "No Criminal Record",
+        value:
+          tenantData.length -
+          tenantData.filter((t) => t.criminalRecords).length,
+      },
     ];
-
     const criminalRecordTypes = Object.entries(
-      tenantData.filter(t => t.criminalRecords)
+      tenantData
+        .filter((t) => t.criminalRecords)
         .reduce((acc, t) => {
-          const type = t.offenceDetails?.nature || 'Other';
+          const type = t.offenceDetails?.nature || "Other";
           acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {})
     ).map(([type, count]) => ({ type, count }));
-
     const drugUse = [
-      { name: "Drug Use History", value: tenantData.filter(t => t.drugUse).length },
-      { name: "No Drug Use History", value: tenantData.length - tenantData.filter(t => t.drugUse).length },
+      {
+        name: "Drug Use History",
+        value: tenantData.filter((t) => t.drugUse).length,
+      },
+      {
+        name: "No Drug Use History",
+        value: tenantData.length - tenantData.filter((t) => t.drugUse).length,
+      },
     ];
-
     return {
       propertyTypes,
       cityDistribution,
@@ -200,7 +278,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
   const fetchAllData = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const role = getUserRoleFromToken();
       setUserRole(role);
@@ -210,7 +287,11 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         return;
       }
 
-      let tenantData = [], propertyData = [], staffData = [], rslData = [], agentData = [];
+      let tenantData = [],
+        propertyData = [],
+        staffData = [],
+        rslData = [],
+        agentData = [];
 
       try {
         const tenantResponse = await getAllTenants();
@@ -219,7 +300,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         console.error("Error fetching tenants:", e);
         setError((prev) => prev || "Failed to load tenant data.");
       }
-
       try {
         const propertyResponse = await getAllProperties();
         propertyData = processApiResponse(propertyResponse, "property");
@@ -227,7 +307,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         console.error("Error fetching properties:", e);
         setError((prev) => prev || "Failed to load property data.");
       }
-
       if (role <= 2) {
         try {
           const staffResponse = await getAllStaff();
@@ -237,7 +316,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           setError((prev) => prev || "Failed to load staff data.");
         }
       }
-
       if (role === 1) {
         try {
           const rslResponse = await getAllRSLs();
@@ -247,7 +325,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           setError((prev) => prev || "Failed to load RSL data.");
         }
       }
-
       if (role === 1) {
         try {
           const agentResponse = await getAllAgents();
@@ -259,7 +336,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           }
         }
       }
-
       setData({
         tenants: tenantData.length,
         properties: propertyData.length,
@@ -267,9 +343,11 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         rsls: rslData.length,
         agents: agentData.length,
       });
-
-      const visualizationData = processVisualizationData(propertyData, tenantData);
-      setVisualizationData(visualizationData);
+      const visualizationResults = processVisualizationData(
+        propertyData,
+        tenantData
+      );
+      setVisualizationData(visualizationResults);
     } catch (error) {
       console.error("Fatal error:", error);
       setError("Unable to load dashboard data. Please try again later.");
@@ -280,8 +358,12 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
 
   useEffect(() => {
     fetchAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ------------------------------------------------------------------
+  // Role based content for dashboard header and cards with enhanced styles
+  // ------------------------------------------------------------------
   const getRoleBasedContent = () => {
     const cardStyles = (color) => ({
       minWidth: 275,
@@ -292,14 +374,13 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
       border: `1px solid ${alpha(theme.palette[color].main, 0.2)}`,
       boxShadow: theme.shadows[2],
       borderRadius: "16px",
-      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       "&:hover": {
         transform: "translateY(-5px)",
         boxShadow: theme.shadows[6],
         borderColor: alpha(theme.palette[color].main, 0.4),
       },
     });
-
     const commonCards = [
       {
         label: "Tenants",
@@ -324,11 +405,10 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         color: "secondary",
       },
     ];
-
     switch (userRole) {
       case 1:
         return {
-          title: `Welcome Admin ${userName}`,
+          title: "Welcome Admin",
           subtitle: "Organization Overview Dashboard",
           cards: [
             ...commonCards,
@@ -370,7 +450,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         };
       case 2:
         return {
-          title: `Welcome Managing Agent ${userName}`,
+          title: "Welcome Managing Agent",
           subtitle: "Property Management Dashboard",
           cards: [
             ...commonCards,
@@ -390,14 +470,14 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         };
       case 3:
         return {
-          title: `Welcome Staff ${userName}`,
+          title: "Welcome Staff",
           subtitle: "Daily Operations Dashboard",
           cards: [...commonCards],
           cardStyles,
         };
       default:
         return {
-          title: `Welcome ${userName || "Guest"}`,
+          title: "Welcome Guest",
           subtitle: "Please sign in to view your dashboard",
           cards: [],
           cardStyles,
@@ -405,9 +485,11 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     }
   };
 
-  const { title, subtitle, cards, cardStyles } = getRoleBasedContent();
+  const { title, subtitle, cards } = getRoleBasedContent();
 
-  // Visualization Cards
+  // ------------------------------------------------------------------
+  // Render visualization cards using the processed data with enhanced styling
+  // ------------------------------------------------------------------
   const renderVisualizationCards = () => {
     const visualizationCardStyle = {
       minHeight: 320,
@@ -424,7 +506,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
       },
     };
 
-    const cards = [
+    return [
       // 1. Property Type Distribution
       <Grid item xs={12} md={6} key="property-type">
         <Card sx={visualizationCardStyle}>
@@ -438,8 +520,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Breakdown of property types helping to understand variety and
-            distribution
+            Breakdown of property types for clarity
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -463,13 +544,12 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
               </PieChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 2. Geographical Distribution
       <Grid item xs={12} md={6} key="geo-distribution">
         <Card sx={visualizationCardStyle}>
@@ -483,7 +563,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Concentration of properties by city for strategic planning
+            Properties concentration by city
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -491,18 +571,17 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="city" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip />
                 <Bar
                   dataKey="count"
                   fill={theme.palette.primary.main}
-                  name="Number of Properties"
+                  name="Properties"
                 />
               </BarChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 3. Shared vs Non-Shared Properties
       <Grid item xs={12} md={6} key="shared-status">
         <Card sx={visualizationCardStyle}>
@@ -510,13 +589,13 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="h6"
             sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}
           >
-            Shared vs Non-Shared Properties
+            Shared vs Non-Shared
           </Typography>
           <Typography
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Proportion of shared living spaces for tenant preferences
+            Proportion of shared living spaces
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -539,14 +618,13 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 4. Tenant Demographics: Ethnic Origin
       <Grid item xs={12} md={6} key="ethnic-origin">
         <Card sx={visualizationCardStyle}>
@@ -560,7 +638,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Distribution showing tenant diversity for inclusive housing
+            Tenant diversity insights
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -568,18 +646,17 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="ethnicity" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip />
                 <Bar
                   dataKey="count"
                   fill={theme.palette.info.main}
-                  name="Number of Tenants"
+                  name="Tenants"
                 />
               </BarChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 5. Criminal Records
       <Grid item xs={12} md={6} key="criminal-records">
         <Card sx={visualizationCardStyle}>
@@ -593,7 +670,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Percentage of tenants with criminal records for risk assessment
+            Tenants with criminal records
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -620,14 +697,13 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 6. Drug Use
       <Grid item xs={12} md={6} key="drug-use">
         <Card sx={visualizationCardStyle}>
@@ -641,7 +717,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Percentage of tenants with drug use history for support services
+            Support services overview
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -669,14 +745,13 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 7. Furnishing Status
       <Grid item xs={12} md={6} key="furnishing-status">
         <Card sx={visualizationCardStyle}>
@@ -690,7 +765,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Distribution of properties by furnishing status
+            Furnishings distribution across properties
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -713,14 +788,13 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>,
-
       // 8. Financial Metrics Comparison
       <Grid item xs={12} md={6} key="financial-metrics">
         <Card sx={visualizationCardStyle}>
@@ -734,7 +808,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             variant="body2"
             sx={{ mb: 2, color: theme.palette.text.secondary }}
           >
-            Comparison of basic rent, service charges, and eligible rent
+            Basic Rent, Service Charges & Eligible Rent
           </Typography>
           <Box sx={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -742,7 +816,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="city" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
                 <Bar
                   dataKey="basicRent"
@@ -765,10 +839,15 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         </Card>
       </Grid>,
     ];
-
-    return cards;
   };
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  // ------------------------------------------------------------------
+  // Render Component with Enhanced Layout & Styling
+  // ------------------------------------------------------------------
   return (
     <Box
       component="main"
@@ -808,7 +887,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           {subtitle}
         </Typography>
       </Box>
-
       {error && (
         <Alert
           severity="error"
@@ -819,15 +897,12 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
             background: alpha(theme.palette.error.main, 0.1),
             width: "fit-content",
             mx: "auto",
-            "& .MuiAlert-icon": {
-              color: theme.palette.error.main,
-            },
+            "& .MuiAlert-icon": { color: theme.palette.error.main },
           }}
         >
           {error}
         </Alert>
       )}
-
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -855,7 +930,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         <Tab label="Overview" />
         <Tab label="Detailed Analytics" />
       </Tabs>
-
       {activeTab === 0 && (
         <Grid container spacing={4} sx={{ px: { xs: 0, sm: 4 } }}>
           {cards.map((card, index) => (
@@ -921,19 +995,17 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
                         />
                       </Box>
                     ) : (
-                      <Box>
-                        <Typography
-                          variant="h3"
-                          component="div"
-                          sx={{
-                            fontWeight: 700,
-                            color: theme.palette[card.color].dark,
-                            fontSize: { xs: "1.5rem", sm: "2rem" },
-                          }}
-                        >
-                          {card.value}
-                        </Typography>
-                      </Box>
+                      <Typography
+                        variant="h3"
+                        component="div"
+                        sx={{
+                          fontWeight: 700,
+                          color: theme.palette[card.color].dark,
+                          fontSize: { xs: "1.5rem", sm: "2rem" },
+                        }}
+                      >
+                        {card.value}
+                      </Typography>
                     )}
                   </Box>
                   <Typography
@@ -953,26 +1025,41 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           ))}
         </Grid>
       )}
-
       {activeTab === 1 && (
         <Box>
-          <Typography
-            variant="h5"
+          <Box
             sx={{
-              fontWeight: 600,
-              color: theme.palette.text.primary,
-              mb: 3,
               display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
-              gap: 1,
+              mb: 3,
             }}
           >
-            <ChartIcon color="primary" />
-            Detailed Analytics
-          </Typography>
-          <Grid container spacing={3}>
-            {renderVisualizationCards()}
-          </Grid>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <ChartIcon color="primary" />
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 600, color: theme.palette.text.primary }}
+              >
+                Detailed Analytics
+              </Typography>
+            </Box>
+            <Tooltip title="Download Detailed Analytics Report as PDF" arrow>
+              <Button
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={handleDownloadPDF}
+                sx={{ textTransform: "none" }}
+              >
+                Download PDF
+              </Button>
+            </Tooltip>
+          </Box>
+          <Box ref={analyticsRef}>
+            <Grid container spacing={3}>
+              {renderVisualizationCards()}
+            </Grid>
+          </Box>
         </Box>
       )}
     </Box>

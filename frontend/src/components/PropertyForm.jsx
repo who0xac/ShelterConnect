@@ -25,7 +25,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const [showOtherInfo, setShowOtherInfo] = useState(false);
   const [formData, setFormData] = useState({
     responsibleForCouncilTax: " RSL/Housing provider",
-    rslTypeGroup: "",
+    rslTypeGroup: null,
     address: "",
     noOfBedrooms: "",
     area: "",
@@ -72,16 +72,11 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    // Fetch RSL options
-    // In PropertyForm.jsx
     const loadRSLs = async () => {
       try {
-        // Add logging to see what's being returned
-        const names = await getRSLNames();
-        console.log("Received RSL names:", names);
-
-        // Set state with the names
-        setRslOptions(names); // Make sure this is an array state variable
+        const rslData = await getRSLNames();
+        console.log("Received RSL data:", rslData);
+        setRslOptions(rslData);
       } catch (error) {
         console.error("Error loading RSLs:", error);
       }
@@ -92,6 +87,8 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
     if (initialData && editMode) {
       setFormData({
         ...initialData,
+        // Handle both object and string references
+        rslTypeGroup: initialData.rslTypeGroup?.id || initialData.rslTypeGroup,
       });
     }
   }, [initialData, editMode]);
@@ -113,7 +110,10 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.rslTypeGroup) newErrors.rslTypeGroup = "RSL is required";
+    if (!formData.rslTypeGroup) {
+      newErrors.rslTypeGroup = "RSL is required";
+      console.log("RSL validation failed");
+    }
     if (!formData.responsibleForCouncilTax)
       newErrors.responsibleForCouncilTax =
         "Council tax responsibility is required";
@@ -146,16 +146,23 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
       }
     }
 
+    console.log("Validation errors:", newErrors); // Debug log
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    console.log(`Changing ${name} to:`, value); // Debug log
+
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+      console.log("Updated form data:", newData); // Debug log
+      return newData;
+    });
   };
 
   const handleRadioChange = (name, value) => {
@@ -171,13 +178,23 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
       toast.error("Please correct the errors in the form");
       return;
     }
+
     setLoading(true);
     try {
+      // Create submission data with RSL ID
+      const submissionData = {
+        ...formData,
+        rslTypeGroup: formData.rslTypeGroup, // Already contains the ID
+      };
+
       if (editMode) {
-        const result = await updatePropertyById(initialData._id, formData);
+        const result = await updatePropertyById(
+          initialData._id,
+          submissionData
+        );
         if (result.success) toast.success("Property updated successfully!");
       } else {
-        const result = await createProperty(formData);
+        const result = await createProperty(submissionData);
         if (result.success) toast.success("Property added successfully!");
       }
       onSuccess();
@@ -195,7 +212,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
           <Typography variant="h6">Property Details</Typography>
           <Divider sx={{ mb: 2 }} />
         </Grid>
-
         {/* Basic Property Details */}
         <Grid item xs={12}>
           <FormControl
@@ -229,31 +245,30 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12}>
-          <TextField
-            select
-            fullWidth
-            label="RSL Type"
-            name="rslTypeGroup"
-            value={formData.rslTypeGroup}
-            onChange={handleChange}
-            error={!!errors.rslTypeGroup}
-            helperText={errors.rslTypeGroup}
-            required
-            disabled={loading || rslOptions.length === 0}
-          >
-            {rslOptions.length === 0 ? (
-              <MenuItem disabled>Loading RSL options...</MenuItem>
-            ) : (
-              rslOptions.map((rslName, index) => (
-                <MenuItem key={index} value={rslName}>
-                  {rslName}
-                </MenuItem>
-              ))
-            )}
-          </TextField>
-        </Grid>
-
+        <TextField
+          select
+          fullWidth
+          label="RSL Type"
+          name="rslTypeGroup"
+          value={formData.rslTypeGroup || ""}
+          onChange={(e) => {
+            console.log("RSL Selected:", e.target.value);
+            setFormData((prev) => ({
+              ...prev,
+              rslTypeGroup: e.target.value,
+            }));
+          }}
+          error={!!errors.rslTypeGroup}
+          helperText={errors.rslTypeGroup}
+          required
+        >
+          {Array.isArray(rslOptions) &&
+            rslOptions.map((rsl) => (
+              <MenuItem key={rsl._id || rsl.id} value={rsl._id || rsl.id}>
+                {rsl.rslName || rsl.name}
+              </MenuItem>
+            ))}
+        </TextField>
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -266,7 +281,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         <Grid item xs={12} md={4}>
           <TextField
             fullWidth
@@ -279,7 +293,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         <Grid item xs={12} md={4}>
           <TextField
             fullWidth
@@ -292,7 +305,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         <Grid item xs={12} md={4}>
           <TextField
             fullWidth
@@ -305,7 +317,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         <Grid item xs={12} md={4}>
           <FormControl fullWidth>
             <FormLabel>Bedsit</FormLabel>
@@ -319,7 +330,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             </RadioGroup>
           </FormControl>
         </Grid>
-
         <Grid item xs={12} md={4}>
           <FormControl fullWidth>
             <FormLabel>Self-contained Flat</FormLabel>
@@ -335,7 +345,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             </RadioGroup>
           </FormControl>
         </Grid>
-
         <Grid item xs={12} md={4}>
           <FormControl fullWidth>
             <FormLabel>Shared with Others</FormLabel>
@@ -351,7 +360,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             </RadioGroup>
           </FormControl>
         </Grid>
-
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -364,7 +372,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         {/* Financial Details */}
         <Grid item xs={12}>
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -372,7 +379,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
           </Typography>
           <Divider sx={{ mb: 2 }} />
         </Grid>
-
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -387,7 +393,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -402,7 +407,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -416,7 +420,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             }}
           />
         </Grid>
-
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -431,7 +434,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
-
         {/* Other Information Checkbox */}
         <Grid item xs={12}>
           <FormControlLabel
@@ -444,7 +446,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             label="Other Information"
           />
         </Grid>
-
         {showOtherInfo && (
           <>
             {/* Property Features */}
@@ -854,7 +855,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             </Grid>
           </>
         )}
-
         {/* Action Buttons */}
         <Grid
           item

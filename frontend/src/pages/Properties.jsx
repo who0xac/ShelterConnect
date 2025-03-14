@@ -57,6 +57,7 @@ const Properties = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [rslOptions, setRslOptions] = useState([]);
 
   // Table control states
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,19 +68,55 @@ const Properties = () => {
   const [userPermissions, setUserPermissions] = useState({
     role: null,
     permissions: [],
-
   });
+  useEffect(() => {
+    const fetchRSLOptions = async () => {
+      try {
+        const result = await getRSLNames();
+        if (result?.success) {
+          setRslOptions(Array.isArray(result.data) ? result.data : []);
+        }
+      } catch (error) {
+        // toast.error("Failed to load RSL types");
+        console.error("RSL Fetch Error:", error);
+        setRslOptions([]);
+      }
+    };
+    fetchRSLOptions();
+  }, []);
+
+  useEffect(() => {
+    const fetchPropertiesData = async () => {
+      setLoading(true);
+      try {
+        const result = await getAllProperties();
+       
+        if (result.success && Array.isArray(result.data)) {
+          setPropertiesData(result.data);
+        } else {
+          setError("Invalid data structure received");
+        }
+        console.log(result);
+
+      } catch (error) {
+        console.error("Error fetching properties data:", error);
+        setError("Failed to fetch properties data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPropertiesData();
+  }, []);
 
   useEffect(() => {
     const checkPermissions = async () => {
       try {
         const userRoleAndPermissions = await getCurrentUserRoleAndPermissions();
         console.log(userRoleAndPermissions);
-        
 
         const { role, permissions } = userRoleAndPermissions;
         setUserPermissions({ role, permissions });
-      
       } catch (error) {
         console.error("Error checking permissions:", error);
         setUserPermissions({
@@ -97,8 +134,6 @@ const Properties = () => {
   // console.log("====================================");
   // console.log(userPermissions);
   // console.log("====================================");
-
-
 
   useEffect(() => {
     fetchPropertiesData();
@@ -176,14 +211,12 @@ const Properties = () => {
   };
 
   const handleEditClick = (property) => {
-   
     setSelectedProperty(property);
     setEditMode(true);
     setOpenPropertyForm(true);
   };
 
   const handleDeleteClick = (property) => {
-   
     setSelectedProperty(property);
     setOpenDeleteDialog(true);
   };
@@ -576,8 +609,11 @@ const Properties = () => {
                       <TableCell
                         sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >
-                        {row.rslTypeGroup || "N/A"}
+                        {rslOptions.find(
+                          (rsl) => rsl?._id === row?.rslTypeGroup
+                        )?.["rslName"] || "N/A"}
                       </TableCell>
+
                       <TableCell
                         sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >
@@ -668,113 +704,50 @@ const Properties = () => {
                             </>
                           ) : (
                             <>
-                              {/* Regular users (role 3) need specific edit permission */}
+                              {/* Regular users (role 3) with edit permission */}
                               {userPermissions?.permissions[1] === true &&
                                 [3].includes(userPermissions?.role) && (
-                                  <Tooltip
-                                    title={
-                                      userPermissions.role === 3 &&
-                                      !userPermissions.canEdit
-                                        ? "No permission to edit"
-                                        : "Edit Property"
-                                    }
-                                  >
-                                    <span>
-                                      <IconButton
-                                        color="primary"
-                                        onClick={() => handleEditClick(row)}
-                                        disabled={
-                                          userPermissions.role === 3 &&
-                                          !userPermissions.canEdit
-                                        }
-                                        sx={{
-                                          "&:hover": {
-                                            bgcolor:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canEdit
-                                                ? "transparent"
-                                                : "rgba(25, 118, 210, 0.1)",
-                                            transform:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canEdit
-                                                ? "none"
-                                                : "translateY(-2px)",
-                                          },
-                                          transition: "all 0.2s",
-                                          mr: 1,
-                                          boxShadow:
-                                            "0 2px 4px rgba(0,0,0,0.05)",
-                                          opacity:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canEdit
-                                              ? 0.5
-                                              : 1,
-                                          cursor:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canEdit
-                                              ? "not-allowed"
-                                              : "pointer",
-                                        }}
-                                        size="small"
-                                      >
-                                        <EditIcon fontSize="small" />
-                                      </IconButton>
-                                    </span>
+                                  <Tooltip title="Edit Property">
+                                    <IconButton
+                                      color="primary"
+                                      onClick={() => handleEditClick(row)}
+                                      sx={{
+                                        "&:hover": {
+                                          bgcolor: "rgba(25, 118, 210, 0.1)",
+                                          transform: "translateY(-2px)",
+                                        },
+                                        transition: "all 0.2s",
+                                        mr: 1,
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                        cursor: "pointer",
+                                      }}
+                                      size="small"
+                                    >
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
                                   </Tooltip>
                                 )}
 
-                              {/* Regular users (role 3) need specific delete permission */}
+                              {/* Regular users (role 3) with delete permission */}
                               {userPermissions?.permissions[2] === true &&
                                 [3].includes(userPermissions?.role) && (
-                                  <Tooltip
-                                    title={
-                                      userPermissions.role === 3 &&
-                                      !userPermissions.canDelete
-                                        ? "No permission to delete"
-                                        : "Delete Property"
-                                    }
-                                  >
-                                    <span>
-                                      <IconButton
-                                        color="error"
-                                        onClick={() => handleDeleteClick(row)}
-                                        disabled={
-                                          userPermissions.role === 3 &&
-                                          !userPermissions.canDelete
-                                        }
-                                        sx={{
-                                          "&:hover": {
-                                            bgcolor:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canDelete
-                                                ? "transparent"
-                                                : "rgba(211, 47, 47, 0.1)",
-                                            transform:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canDelete
-                                                ? "none"
-                                                : "translateY(-2px)",
-                                          },
-                                          transition: "all 0.2s",
-                                          mr: 1,
-                                          boxShadow:
-                                            "0 2px 4px rgba(0,0,0,0.05)",
-                                          opacity:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canDelete
-                                              ? 0.5
-                                              : 1,
-                                          cursor:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canDelete
-                                              ? "not-allowed"
-                                              : "pointer",
-                                        }}
-                                        size="small"
-                                      >
-                                        <DeleteIcon fontSize="small" />
-                                      </IconButton>
-                                    </span>
+                                  <Tooltip title="Delete Property">
+                                    <IconButton
+                                      color="error"
+                                      onClick={() => handleDeleteClick(row)}
+                                      sx={{
+                                        "&:hover": {
+                                          bgcolor: "rgba(211, 47, 47, 0.1)",
+                                          transform: "translateY(-2px)",
+                                        },
+                                        transition: "all 0.2s",
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                        cursor: "pointer",
+                                      }}
+                                      size="small"
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
                                   </Tooltip>
                                 )}
                             </>

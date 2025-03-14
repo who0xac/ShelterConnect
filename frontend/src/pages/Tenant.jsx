@@ -1141,7 +1141,7 @@ const filteredData = tenantsData.filter((row) => {
               </Button>
             ) : (
               <>
-                {userPermissions?.permissions[4] === true &&
+                {userPermissions?.permissions[3] === true &&
                   [3].includes(userPermissions?.role) && (
                     <Button
                       variant="contained"
@@ -1568,166 +1568,74 @@ const filteredData = tenantsData.filter((row) => {
                             </>
                           ) : (
                             <>
+                              {/* Edit Button */}
                               {userPermissions?.permissions[4] === true &&
                                 [3].includes(userPermissions?.role) && (
-                                  <Tooltip
-                                    title={
-                                      userPermissions.role === 3 &&
-                                      !userPermissions.canEdit
-                                        ? "No permission to edit"
-                                        : "Edit Tenant"
-                                    }
-                                  >
-                                    <span>
-                                      <IconButton
-                                        color="primary"
-                                        onClick={() => handleEditClick(row)}
-                                        disabled={
-                                          userPermissions.role === 3 &&
-                                          !userPermissions.canEdit
-                                        }
-                                        sx={{
-                                          "&:hover": {
-                                            bgcolor:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canEdit
-                                                ? "transparent"
-                                                : "rgba(25, 118, 210, 0.1)",
-                                            transform:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canEdit
-                                                ? "none"
-                                                : "translateY(-2px)",
-                                          },
-                                          transition: "all 0.2s",
-                                          mr: 1,
-                                          boxShadow:
-                                            "0 2px 4px rgba(0,0,0,0.05)",
-                                          opacity:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canEdit
-                                              ? 0.5
-                                              : 1,
-                                          cursor:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canEdit
-                                              ? "not-allowed"
-                                              : "pointer",
-                                        }}
-                                        size="small"
-                                      >
-                                        <EditIcon fontSize="small" />
-                                      </IconButton>
-                                    </span>
+                                  <Tooltip title="Edit Tenant">
+                                    <IconButton
+                                      color="primary"
+                                      onClick={() => handleEditClick(row)}
+                                      sx={{
+                                        "&:hover": {
+                                          bgcolor: "rgba(25, 118, 210, 0.1)",
+                                          transform: "translateY(-2px)",
+                                        },
+                                        transition: "all 0.2s",
+                                        mr: 1,
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                        cursor: "pointer",
+                                      }}
+                                      size="small"
+                                    >
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
                                   </Tooltip>
                                 )}
 
+                              {/* Delete Button */}
                               {userPermissions?.permissions[5] === true &&
                                 [3].includes(userPermissions?.role) && (
-                                  <Tooltip
-                                    title={
-                                      userPermissions.role === 3 &&
-                                      !userPermissions.canDelete
-                                        ? "No permission to delete"
-                                        : "Delete Tenant"
-                                    }
-                                  >
-                                    <span>
-                                      <IconButton
-                                        color="error"
-                                        onClick={() => handleDeleteClick(row)}
-                                        disabled={
-                                          userPermissions.role === 3 &&
-                                          !userPermissions.canDelete
-                                        }
-                                        sx={{
-                                          "&:hover": {
-                                            bgcolor:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canDelete
-                                                ? "transparent"
-                                                : "rgba(211, 47, 47, 0.1)",
-                                            transform:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canDelete
-                                                ? "none"
-                                                : "translateY(-2px)",
-                                          },
-                                          transition: "all 0.2s",
-                                          mr: 1,
-                                          boxShadow:
-                                            "0 2px 4px rgba(0,0,0,0.05)",
-                                          opacity:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canDelete
-                                              ? 0.5
-                                              : 1,
-                                          cursor:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canDelete
-                                              ? "not-allowed"
-                                              : "pointer",
-                                        }}
-                                        size="small"
-                                      >
-                                        <DeleteIcon fontSize="small" />
-                                      </IconButton>
-                                    </span>
+                                  <Tooltip title="Delete Tenant">
+                                    <IconButton
+                                      color="error"
+                                      onClick={() => handleDeleteClick(row)}
+                                      sx={{
+                                        "&:hover": {
+                                          bgcolor: "rgba(211, 47, 47, 0.1)",
+                                          transform: "translateY(-2px)",
+                                        },
+                                        transition: "all 0.2s",
+                                        mr: 1,
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                        cursor: "pointer",
+                                      }}
+                                      size="small"
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
                                   </Tooltip>
                                 )}
 
+                              {/* Download Button */}
                               {userPermissions?.permissions[7] === true &&
                                 [3].includes(userPermissions?.role) && (
-                                  <Tooltip
-                                    title={
-                                      userPermissions.role === 3 &&
-                                      !userPermissions.canDownload
-                                        ? "No permission to download"
-                                        : "Download Report"
-                                    }
-                                  >
-                                    <span>
-                                      <IconButton
-                                        color="secondary"
-                                        onClick={() =>
-                                          handleDownloadReport(row)
-                                        }
-                                        disabled={
-                                          userPermissions.role === 3 &&
-                                          !userPermissions.canDownload
-                                        }
-                                        sx={{
-                                          "&:hover": {
-                                            bgcolor:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canDownload
-                                                ? "transparent"
-                                                : "rgba(156, 39, 176, 0.1)",
-                                            transform:
-                                              userPermissions.role === 3 &&
-                                              !userPermissions.canDownload
-                                                ? "none"
-                                                : "translateY(-2px)",
-                                          },
-                                          transition: "all 0.2s",
-                                          boxShadow:
-                                            "0 2px 4px rgba(0,0,0,0.05)",
-                                          opacity:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canDownload
-                                              ? 0.5
-                                              : 1,
-                                          cursor:
-                                            userPermissions.role === 3 &&
-                                            !userPermissions.canDownload
-                                              ? "not-allowed"
-                                              : "pointer",
-                                        }}
-                                        size="small"
-                                      >
-                                        <DownloadIcon fontSize="small" />
-                                      </IconButton>
-                                    </span>
+                                  <Tooltip title="Download Report">
+                                    <IconButton
+                                      color="secondary"
+                                      onClick={() => handleDownloadReport(row)}
+                                      sx={{
+                                        "&:hover": {
+                                          bgcolor: "rgba(156, 39, 176, 0.1)",
+                                          transform: "translateY(-2px)",
+                                        },
+                                        transition: "all 0.2s",
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                        cursor: "pointer",
+                                      }}
+                                      size="small"
+                                    >
+                                      <DownloadIcon fontSize="small" />
+                                    </IconButton>
                                   </Tooltip>
                                 )}
                             </>
