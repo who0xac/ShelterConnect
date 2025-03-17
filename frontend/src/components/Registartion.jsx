@@ -68,16 +68,12 @@ const Registration = ({ onBackToLogin }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError(""); // Clear previous errors
+    setError(""); 
     
     try {
       const response = await registerUser(formData);
       console.log("User registered successfully:", response);
-      
-      // Show success toast
       toast.success("User registered successfully!");
-      
-      // Clear the form after submission
       setFormData({
         companyName: "",
         firstName: "",
@@ -97,12 +93,8 @@ const Registration = ({ onBackToLogin }) => {
       }, 3000);
     } catch (error) {
       console.error("Error registering user:", error);
-      
-      // Extract and set the error message
       const errorMessage = extractErrorMessage(error);
       setError(errorMessage);
-      
-      // Show error toast
       toast.error(errorMessage);
     }
   };

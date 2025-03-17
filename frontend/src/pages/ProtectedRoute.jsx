@@ -12,7 +12,6 @@ const ProtectedRoute = ({ requiredRole, children }) => {
   }
 
   if (!requiredRole) {
-    // Render children or Outlet for nested routes
     return children ? children : <Outlet />;
   }
 
@@ -28,10 +27,8 @@ const ProtectedRoute = ({ requiredRole, children }) => {
   const userRole = decodedToken.role;
 
   if (roles[userRole]?.includes(requiredRole)) {
-    // Render children or Outlet for nested routes
-    return children ? children : <Outlet />;
+      return children ? children : <Outlet />;
   }
-
   return <Navigate to="/unauthorized" replace />;
 };
 

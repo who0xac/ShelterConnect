@@ -1,6 +1,4 @@
 import axios from "axios";
-
-// Use environment variable for base URL
 const API_BASE_URL = "http://localhost:3000/api/rsl";
 
 // Utility function to validate RSL ID
@@ -85,16 +83,16 @@ export const getRSLNames = async () => {
 
     let rslInfo = [];
 
-    // Handle both response formats: array and { data: array }
+    // Handle both response formats
     if (Array.isArray(response.data)) {
       rslInfo = response.data.map((rsl) => ({
-        id: rsl._id, // Use MongoDB's native _id
+        id: rsl._id, 
         rslName: rsl.rslName,
-        originalObject: rsl, // Optionally store full object if needed
+        originalObject: rsl, 
       }));
     } else if (response.data?.data && Array.isArray(response.data.data)) {
       rslInfo = response.data.data.map((rsl) => ({
-        id: rsl._id, // Use MongoDB's native _id
+        id: rsl._id, 
         rslName: rsl.rslName,
         
       }));

@@ -80,9 +80,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
   ];
   const analyticsRef = useRef();
 
-  // -------------------------------------------------------------------
-  // Enhanced PDF Generation: Improved header/footer styling & meta info
-  // -------------------------------------------------------------------
   const handleDownloadPDF = async () => {
     try {
       const element = analyticsRef.current;
@@ -124,9 +121,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     }
   };
 
-  // ----------------------------------------------------
-  // Data fetching and processing functions (unchanged)
-  // ----------------------------------------------------
   // Updated function: Remove any username handling from the token
   const getUserRoleFromToken = () => {
     try {
@@ -358,12 +352,8 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
 
   useEffect(() => {
     fetchAllData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------------------------------------------------------------------
-  // Role based content for dashboard header and cards with enhanced styles
-  // ------------------------------------------------------------------
   const getRoleBasedContent = () => {
     const cardStyles = (color) => ({
       minWidth: 275,
@@ -487,9 +477,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
 
   const { title, subtitle, cards } = getRoleBasedContent();
 
-  // ------------------------------------------------------------------
-  // Render visualization cards using the processed data with enhanced styling
-  // ------------------------------------------------------------------
   const renderVisualizationCards = () => {
     const visualizationCardStyle = {
       minHeight: 320,
@@ -845,9 +832,6 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     setActiveTab(newValue);
   };
 
-  // ------------------------------------------------------------------
-  // Render Component with Enhanced Layout & Styling
-  // ------------------------------------------------------------------
   return (
     <Box
       component="main"

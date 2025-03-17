@@ -38,7 +38,6 @@ const SignaturePad = ({ onSave, initialSignature }) => {
       return;
     }
 
-    // Get the full canvas data URL directly
     const signature = sigCanvas.current.toDataURL();
     onSave(signature);
     setShowPad(false);
@@ -106,8 +105,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
       // console.log(userPermissions);
       // console.log("====================================");
 
-  // Initialize form data with empty values or provided initial data
-  const [formData, setFormData] = useState({
+ const [formData, setFormData] = useState({
     property: "",
     roomNumber: "",
     signInDate: "",
@@ -219,7 +217,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
     status: 1,
   });
 
-  // Fetch properties and get the list of occupied rooms
   useEffect(() => {
     const loadProperties = async () => {
       try {
@@ -227,31 +224,23 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
         if (response && response.success && Array.isArray(response.data)) {
           setProperties(response.data);
-
-          // If we have initialData, find the property it belongs to
           if (initialData && initialData.property) {
             const property = response.data.find(
               (p) => p._id === initialData.property
             );
             if (property) {
               setSelectedProperty(property);
-
-              // Get occupied rooms for this property
               try {
-                // You'll need to implement or import this API function
                 const tenantsResponse = await getTenantsByProperty(
                   property._id
                 );
                 if (tenantsResponse && tenantsResponse.success) {
-                  // Filter out the current tenant's room if in edit mode
                   const occupiedRoomNumbers = tenantsResponse.data
                     .filter((tenant) =>
                       editMode ? tenant._id !== initialData._id : true
                     )
                     .map((tenant) => tenant.roomNumber);
                   setOccupiedRooms(occupiedRoomNumbers);
-
-                  // Generate available room numbers
                   generateRoomNumbers(
                     property.noOfBedrooms,
                     occupiedRoomNumbers
@@ -277,10 +266,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
     const initializeForm = () => {
       if (initialData && editMode) {
-        // Convert date strings to the format expected by the form
         const formattedData = { ...initialData };
-
-        // Format dates if they exist
         if (formattedData.signInDate) {
           formattedData.signInDate = new Date(formattedData.signInDate)
             .toISOString()
@@ -299,7 +285,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
             .split("T")[0];
         }
 
-        // Format personal details dates
         if (formattedData.personalDetails) {
           if (formattedData.personalDetails.dateOfBirth) {
             formattedData.personalDetails.dateOfBirth = new Date(
@@ -316,8 +301,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
               .split("T")[0];
           }
         }
-
-        // Format offense details date
         if (formattedData.offenceDetails && formattedData.offenceDetails.date) {
           formattedData.offenceDetails.date = new Date(
             formattedData.offenceDetails.date
@@ -325,8 +308,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
             .toISOString()
             .split("T")[0];
         }
-
-        // Ensure all Boolean values are properly set
         formattedData.debts = !!formattedData.debts;
         formattedData.gamblingIssues = !!formattedData.gamblingIssues;
         formattedData.criminalRecords = !!formattedData.criminalRecords;
@@ -345,8 +326,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
         formattedData.legalOrders = !!formattedData.legalOrders;
         formattedData.drugUse = !!formattedData.drugUse;
         formattedData.familySupport = !!formattedData.familySupport;
-
-        // Ensure arrays are properly initialized
         formattedData.supportNeeds = Array.isArray(formattedData.supportNeeds)
           ? formattedData.supportNeeds
           : [];
@@ -355,13 +334,9 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
         )
           ? formattedData.riskAssessment
           : [];
-
-        // Initialize personalDetails object if it doesn't exist
         if (!formattedData.personalDetails) {
           formattedData.personalDetails = {};
         }
-
-        // Initialize offenceDetails object if it doesn't exist
         if (!formattedData.offenceDetails) {
           formattedData.offenceDetails = {
             nature: "",
@@ -370,7 +345,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
           };
         }
 
-        // Initialize termsAndConditions object with all entries if it doesn't exist or is incomplete
         if (!formattedData.termsAndConditions) {
           formattedData.termsAndConditions = {
             supportChecklist: { agreed: false },
@@ -390,7 +364,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
             staffAgreement: { agreed: false },
           };
         } else {
-          // Make sure all terms and conditions objects exist
           const allTerms = [
             "supportChecklist",
             "licenseToOccupy",
@@ -423,13 +396,10 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
       }
     };
 
-    // Load properties first, then initialize the form
     loadProperties().then(() => {
       initializeForm();
     });
   }, [initialData, editMode]);
-
-  // Generate available room numbers based on property's noOfBedrooms
   const generateRoomNumbers = (noOfBedrooms, occupiedRooms = []) => {
     if (!noOfBedrooms || noOfBedrooms <= 0) {
       setAvailableRooms([]);
@@ -438,7 +408,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
     const rooms = [];
     for (let i = 1; i <= noOfBedrooms; i++) {
-      // Add to available rooms if it's not occupied (or it's the room of the current tenant in edit mode)
       if (!occupiedRooms.includes(i.toString())) {
         rooms.push(i.toString());
       }
@@ -446,39 +415,30 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
     setAvailableRooms(rooms);
   };
 
-  // Handle property selection change
   const handlePropertyChange = async (e) => {
     const propertyId = e.target.value;
     const selectedProp = properties.find((p) => p._id === propertyId);
 
     if (selectedProp) {
       setSelectedProperty(selectedProp);
-
-      // Reset room number when property changes
       setFormData((prev) => ({
         ...prev,
         property: propertyId,
         roomNumber: "",
       }));
 
-      // Get occupied rooms for this property
       try {
         const tenantsResponse = await getTenantsByProperty(propertyId);
         if (tenantsResponse && tenantsResponse.success) {
-          // Get occupied room numbers
-          const occupiedRoomNumbers = tenantsResponse.data.map(
+            const occupiedRoomNumbers = tenantsResponse.data.map(
             (tenant) => tenant.roomNumber
           );
           setOccupiedRooms(occupiedRoomNumbers);
-
-          // Generate available room numbers based on the property's bedroom count
           generateRoomNumbers(selectedProp.noOfBedrooms, occupiedRoomNumbers);
         }
       } catch (error) {
         console.error("Error fetching tenants:", error);
         toast.error("Failed to load room occupancy data");
-
-        // Still generate room numbers even if tenant data fetch fails
         generateRoomNumbers(selectedProp.noOfBedrooms);
       }
     }
@@ -551,7 +511,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
         },
       }));
     } else if (path.length === 2) {
-      // For properties like personalDetails.firstName
       setFormData((prev) => ({
         ...prev,
         [path[0]]: {
@@ -560,7 +519,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
         },
       }));
     } else {
-      // For top-level properties
+    
       setFormData((prev) => ({
         ...prev,
         [name]: type === "checkbox" ? checked : value,
@@ -586,17 +545,16 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
   };
 
   const handleSignatureChange = (fieldName, signature) => {
-    console.log("Updating Signature:", fieldName, signature); // Debug: Log the update
+    console.log("Updating Signature:", fieldName, signature); 
     setFormData((prev) => ({
       ...prev,
-      [fieldName]: signature, // Update the correct field in formData
+      [fieldName]: signature,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log("Form Data Before Submission:", formData); // Debug: Log formData
+    console.log("Form Data Before Submission:", formData); 
 
     if (!validate()) {
       toast.error("Please correct the errors in the form");
@@ -614,7 +572,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
         toast.success("Tenant added successfully!");
       }
 
-      onSuccess(); // Callback for success
+      onSuccess(); 
     } catch (error) {
       console.error("Form submission error:", error);
       toast.error(error.response?.data?.message || "An error occurred");
@@ -649,8 +607,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                     {properties.map((property) => (
                       <MenuItem key={property._id} value={property._id}>
                         {" "}
-                        {/* Ensure value is property._id */}
-                        {property.address || "Unnamed Property"}
+                       {property.address || "Unnamed Property"}
                       </MenuItem>
                     ))}
                   </Select>
@@ -667,7 +624,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                   <Select
                     labelId="room-number-label"
                     name="roomNumber"
-                    value={formData.roomNumber || ""} // Ensure value is a string or empty string
+                    value={formData.roomNumber || ""} 
                     onChange={handleChange}
                     label="Room Number *"
                     disabled={!selectedProperty || availableRooms.length === 0}
@@ -675,7 +632,6 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
                     {availableRooms.map((room) => (
                       <MenuItem key={room} value={room}>
                         {" "}
-                        {/* Ensure value is a string */}
                         Room {room}
                       </MenuItem>
                     ))}

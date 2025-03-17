@@ -1,7 +1,6 @@
 import PropertyModel from "../../models/Properties/propertiesModel.js";
 import UserModel from "../../models/Users/userModel.js";
 import StaffModel from "../../models/Staff/staffModel.js";
-import RSLModel from "../../models/RSL/rslModel.js";
 import mongoose from "mongoose";
 
 // Create Property
@@ -56,12 +55,11 @@ async function createProperty(req, res) {
 }
 
 // Get Property by ID
-// Get Property by ID
 async function getPropertyById(req, res) {
   try {
     const propertyId = req.params.id;
     const userId = req.user.id;
-    const userRole = req.user.role; // Assuming role is available in req.user
+    const userRole = req.user.role; 
 
     let user = await UserModel.findById(userId);
     if (!user) {
@@ -77,7 +75,6 @@ async function getPropertyById(req, res) {
       return res.status(404).json({ success: false, message: "Property not found" });
     }
 
-    // For role 3 users, check if they own the property
     if (userRole === 3 && property.addedBy.toString() !== userId) {
       return res.status(403).json({
         success: false,
@@ -117,7 +114,7 @@ async function getAllProperties(req, res) {
   }
 }
 
-// Get Properties for the Logged-in User
+// Get User Properties 
 async function getUserProperties(req, res) {
   try {
     const userId = req.user.id;
@@ -147,20 +144,16 @@ async function getUserProperties(req, res) {
 }
 
 // Update Property
-// controllers/Property/index.js
-
 async function updateProperty(req, res) {
   try {
-    const { _id, addedBy, ...updateData } = req.body; // Remove addedBy from update data
-
-    // For staff members (role 3), ensure they can't change ownership
+    const { _id, addedBy, ...updateData } = req.body; 
     if (req.user.role === 3) {
-      delete updateData.addedBy; // Prevent staff from changing ownership
+      delete updateData.addedBy;
     }
 
     const updatedProperty = await PropertyModel.updatePropertyById(
       req.params.id,
-      updateData // Use sanitized data
+      updateData
     );
 
     if (!updatedProperty) {

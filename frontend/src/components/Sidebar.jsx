@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 import { useAuth } from "../context/AuthContext.jsx"; 
 import roles from "../context/role.js"; 
-
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -34,7 +33,6 @@ import {
   ArrowRight as ArrowRightIcon,
 } from "@mui/icons-material";
 
-// Custom theme for sidebar
 const sidebarTheme = createTheme({
   palette: {
     primary: {
@@ -89,8 +87,6 @@ const Sidebar = ({
   const location = useLocation();
   const currentPath = location.pathname;
   const { user } = useAuth();
-
-  // Get allowed pages for the user's role
   const allowedPages = roles[user?.role] || [];
 
   const drawer = (
@@ -151,10 +147,7 @@ const Sidebar = ({
         {/* Navigation Items */}
         <List sx={{ flexGrow: 1, px: 1 }}>
           {navigationItems.map((item) => {
-            // Check if current role has access to this navigation item
             const isAllowed = allowedPages.includes(item.key);
-
-            // Return null for unauthorized items (won't render anything)
             if (!isAllowed) return null;
 
             return (

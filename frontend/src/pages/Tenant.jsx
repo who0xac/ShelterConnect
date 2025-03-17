@@ -42,35 +42,21 @@ import { getAllTenants, deleteTenantById } from "../api/tenantApi.js";
 import { getCurrentUser,getCurrentUserRoleAndPermissions } from "../api/userApi.js";
 
 const drawerWidth = 240;
-
-
-
-
 const handleDownloadReport = (tenant) => {
   // Create a new PDF document
   const doc = new jsPDF();
-
-  // Add default font
   doc.setFont("helvetica");
-
-  // Set consistent margins on all sides
   const margin = 15;
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   const contentWidth = pageWidth - margin * 2;
-
-  // Initial position starts after top margin
   let yPosition = margin;
-
-  // Add footer space to prevent overlap
   const footerSpace = 20;
   const headerSpacing = 25;
 
-  // Function to add section headers
   const addSectionHeader = (text) => {
     doc.setFillColor(59, 81, 181);
     doc.rect(margin, yPosition, contentWidth, 8, "F");
-
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
@@ -84,21 +70,16 @@ const handleDownloadReport = (tenant) => {
     doc.setTextColor(80, 80, 80);
     doc.setFontSize(9);
     doc.text(label, margin, yPosition);
-
-    // Calculate value position to ensure proper alignment
     const labelWidth = 60;
 
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-
-    // Handle multi-line text for long values
     if (value && value.length > 40) {
       const splitValue = doc.splitTextToSize(
         value || "N/A",
         width - labelWidth
       );
       doc.text(splitValue, margin + labelWidth, yPosition);
-      // Adjust y position based on number of lines
       yPosition += 6 * splitValue.length;
     } else {
       doc.text(value || "N/A", margin + labelWidth, yPosition);
@@ -163,7 +144,6 @@ const handleDownloadReport = (tenant) => {
   const addSignatureImage = (base64Data, x, y, width, height) => {
     if (base64Data && typeof base64Data === "string" && base64Data.length > 0) {
       try {
-        // Remove data URI prefix if present
         const imageData = base64Data.includes("base64,")
           ? base64Data.split("base64,")[1]
           : base64Data;
@@ -184,8 +164,7 @@ const handleDownloadReport = (tenant) => {
     if (tenant.organizationLogoPath) {
       // Create an image object
       const img = new Image();
-      img.crossOrigin = "Anonymous"; // Needed for CORS if logo is on different domain
-
+      img.crossOrigin = "Anonymous"; 
       // Set up the onload handler
       img.onload = function () {
         const canvas = document.createElement("canvas");
@@ -198,11 +177,8 @@ const handleDownloadReport = (tenant) => {
         const imgData = canvas.toDataURL("image/png");
         doc.addImage(imgData, "PNG", margin, 5, 40, 15);
       };
-
-      // Set the src to the image path - this is where you specify your image location
       img.src = "src/assets/icons/shelterconnect-removebg.png";
     } else {
-      // Fallback to text
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(255, 255, 255);
@@ -212,7 +188,6 @@ const handleDownloadReport = (tenant) => {
 
   // Function to add page header for additional pages
   const addPageHeader = () => {
-    // Add header with solid background (smaller than first page)
     doc.setFillColor(26, 35, 126);
     doc.rect(0, 0, pageWidth, 20, "F");
 
@@ -265,7 +240,7 @@ const handleDownloadReport = (tenant) => {
     // Check for page break after each risk indicator
     if (yPosition > pageHeight - margin - footerSpace) {
       doc.addPage();
-      addPageHeader(); // Add header to the new page
+      addPageHeader(); 
       yPosition = margin + headerSpacing;
     }
   };
@@ -274,7 +249,7 @@ const handleDownloadReport = (tenant) => {
   doc.setFillColor(26, 35, 126);
   doc.rect(0, 0, pageWidth, 35, "F");
 
-  // Add logo
+ 
   addLogo();
 
   // Title and Reference Number
@@ -302,8 +277,6 @@ const handleDownloadReport = (tenant) => {
   // Enhanced Full Name and Portrait section
   doc.setFillColor(240, 240, 240);
   doc.roundedRect(margin, yPosition, contentWidth, 35, 5, 5, "F");
-
-  // Add subtle design elements
   doc.setDrawColor(59, 81, 181);
   doc.setLineWidth(0.5);
   doc.line(margin, yPosition + 35, margin + contentWidth, yPosition + 35);
@@ -317,14 +290,9 @@ const handleDownloadReport = (tenant) => {
     tenant.personalDetails.lastName
   }`.trim();
   doc.text(fullName, margin + 5, yPosition + 15);
-
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  // doc.text(`Room ${tenant.roomNumber || "N/A"}`, margin + 5, yPosition + 25);
-
-  // Add placeholder for photo or profile icon (or actual photo if available)
   if (tenant.personalDetails.photo) {
-    // If there's a photo available
     addSignatureImage(
       tenant.personalDetails.photo,
       pageWidth - margin - 35,
@@ -333,11 +301,8 @@ const handleDownloadReport = (tenant) => {
       25
     );
   } else {
-    // Placeholder for photo - simple rectangle
     doc.setFillColor(200, 200, 200);
     doc.roundedRect(pageWidth - margin - 35, yPosition + 5, 25, 25, 2, 2, "F");
-
-    // Simple person silhouette
     doc.setFillColor(150, 150, 150);
     doc.circle(pageWidth - margin - 22.5, yPosition + 12, 5, "F");
     doc.setFillColor(150, 150, 150);
@@ -348,7 +313,6 @@ const handleDownloadReport = (tenant) => {
 
   // Personal Details Section
   addSectionHeader("PERSONAL DETAILS");
-
   addTwoColumnFields(
     "Full Name:",
     fullName,
@@ -398,10 +362,9 @@ const handleDownloadReport = (tenant) => {
   doc.text(addressLines, margin + 60, yPosition);
   yPosition += addressLines.length * 6;
 
-  // Check for page break after address
   if (yPosition > pageHeight - margin - footerSpace - 20) {
     doc.addPage();
-    addPageHeader(); // Add header to the new page
+    addPageHeader(); 
     yPosition = margin + headerSpacing;
   }
 
@@ -467,9 +430,7 @@ const handleDownloadReport = (tenant) => {
     tenant.personalDetails.gpInfo ? "Available" : "Not Available"
   );
 
-  // Risk Assessment Section with text-based indicators instead of dots
   addSectionHeader("RISK ASSESSMENT");
-
   // Use text-based indicators for critical risk factors
   addRiskIndicator("Criminal Records:", tenant.criminalRecords);
   addRiskIndicator("Prison History:", tenant.prisonHistory);
@@ -489,23 +450,21 @@ const handleDownloadReport = (tenant) => {
   }
 
  if (tenant.criminalRecords && tenant.offenceDetails) {
-   yPosition += 5; // Increased spacing before the offence details section
+   yPosition += 5; 
    doc.setFont("helvetica", "bold");
    doc.text("Offence Details:", margin, yPosition);
-   yPosition += 8; // Increased spacing after the heading
+   yPosition += 8; 
 
    // Check for page break before offence details box
    if (yPosition > pageHeight - margin - footerSpace - 30) {
-     // Increased required space
      doc.addPage();
-     addPageHeader(); // Add header to the new page
+     addPageHeader(); 
      yPosition = margin + headerSpacing;
      doc.setFont("helvetica", "bold");
      doc.text("Offence Details:", margin, yPosition);
-     yPosition += 8; // Increased spacing
+     yPosition += 8; 
    }
 
-   // Create a bordered box for offence details
    const startY = yPosition;
    let boxHeight = 0;
 
@@ -513,10 +472,10 @@ const handleDownloadReport = (tenant) => {
      doc.setFont("helvetica", "normal");
      doc.text(
        `Nature: ${tenant.offenceDetails.nature}`,
-       margin + 8, // Increased left padding
+       margin + 8,
        yPosition
      );
-     yPosition += 8; // Increased line spacing
+     yPosition += 8; 
      boxHeight += 8;
    }
 
@@ -524,10 +483,10 @@ const handleDownloadReport = (tenant) => {
      doc.setFont("helvetica", "normal");
      doc.text(
        `Date: ${formatDate(tenant.offenceDetails.date)}`,
-       margin + 8, // Increased left padding
+       margin + 8,
        yPosition
      );
-     yPosition += 8; // Increased line spacing
+     yPosition += 8; 
      boxHeight += 8;
    }
 
@@ -535,24 +494,21 @@ const handleDownloadReport = (tenant) => {
      doc.setFont("helvetica", "normal");
      doc.text(
        `Sentence: ${tenant.offenceDetails.sentence}`,
-       margin + 8, // Increased left padding
+       margin + 8,
        yPosition
      );
-     yPosition += 8; // Increased line spacing
+     yPosition += 8; 
      boxHeight += 8;
    }
-
-   // Draw the box around offence details with more padding
    doc.setDrawColor(180, 180, 180);
    doc.setLineWidth(0.5);
-   doc.roundedRect(margin, startY - 4, contentWidth, boxHeight + 8, 3, 3); // Increased padding and rounded corners
+   doc.roundedRect(margin, startY - 4, contentWidth, boxHeight + 8, 3, 3); 
 
-   yPosition += 3; // Add a little extra space after the box
+   yPosition += 3;
  }
 
   // Support Needs Section
   addSectionHeader("SUPPORT NEEDS & ADDITIONAL INFORMATION");
-
   if (tenant.supportNeeds && tenant.supportNeeds.length > 0) {
     addField("Support Needs:", tenant.supportNeeds.join(", "));
   }
@@ -564,7 +520,6 @@ const handleDownloadReport = (tenant) => {
     tenant.fullCheckCompleted ? "Yes" : "No"
   );
 
-  // Additional Demographics
   if (
     tenant.ethnicOrigin ||
     tenant.religion ||
@@ -579,8 +534,6 @@ const handleDownloadReport = (tenant) => {
       addField("Sexual Orientation:", tenant.sexualOrientation);
     if (tenant.preferredArea) addField("Preferred Area:", tenant.preferredArea);
   }
-
-  // Terms and Agreements Section with improved styling
   if (tenant.termsAndConditions) {
     addSectionHeader("AGREEMENTS & SIGNATURES");
 
@@ -606,14 +559,11 @@ const handleDownloadReport = (tenant) => {
     doc.setFontSize(10);
     doc.text("Agreements Signed:", margin, yPosition);
     yPosition += 5;
-
-    // Create a nice table for agreements
     const cellWidth = contentWidth / 2;
     let currentX = margin;
     let itemCount = 0;
 
     agreementItems.forEach((item) => {
-      // Switch to next column or row as needed
       if (itemCount % 2 === 0 && itemCount > 0) {
         yPosition += 8;
         currentX = margin;
@@ -643,7 +593,7 @@ const handleDownloadReport = (tenant) => {
         currentX === margin + cellWidth
       ) {
         doc.addPage();
-        addPageHeader(); // Add header to the new page
+        addPageHeader(); 
         yPosition = margin + headerSpacing;
         currentX = margin;
         itemCount = 0;
@@ -651,29 +601,20 @@ const handleDownloadReport = (tenant) => {
     });
 
     doc.setTextColor(0, 0, 0);
-
-    // Ensure proper spacing after the agreements section
     if (itemCount % 2 === 1) {
       yPosition += 8;
     } else {
       yPosition += 3;
     }
   }
-
-  // ----- IMPROVED SIGNATURE SECTION -----
-
-  // Before adding signatures, check if we have enough space for the entire signature section
-  // Signature section needs at least 70 points of vertical space
   const requiredSignatureSpace = 70;
 
-  // Always ensure signatures are on same page by forcing a new page if there's not enough space
   if (yPosition > pageHeight - margin - footerSpace - requiredSignatureSpace) {
     doc.addPage();
     addPageHeader();
     yPosition = margin + headerSpacing;
   }
 
-  // Add "SIGNATURES" section header to ensure it's visibly part of the signature section
   addSectionHeader("SIGNATURES");
 
   // Create attractive signature boxes
@@ -684,7 +625,7 @@ const handleDownloadReport = (tenant) => {
   doc.roundedRect(margin, yPosition, contentWidth / 2 - 10, 40, 3, 3, "FD");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.setTextColor(0, 0, 0); // Set text color to black before writing the heading
+  doc.setTextColor(0, 0, 0); 
   doc.text("Tenant Signature:", margin + 5, yPosition + 10);
 
   // Try to find the tenant signature in various possible locations
@@ -751,7 +692,7 @@ const handleDownloadReport = (tenant) => {
  );
  doc.setFont("helvetica", "bold");
  doc.setFontSize(9);
- doc.setTextColor(0, 0, 0); // Set text color to black before writing the heading
+ doc.setTextColor(0, 0, 0); 
  doc.text(
    "Support Worker Signature:",
    margin + contentWidth / 2 + 5,
@@ -796,18 +737,14 @@ const handleDownloadReport = (tenant) => {
     yPosition + 35
   );
 
-  // Add headers to all pages except the first one
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 2; i <= totalPages; i++) {
     doc.setPage(i);
     addPageHeader();
   }
 
-  // Add an enhanced footer with plenty of space to all pages
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-
-    // Add decorative line with distance from bottom
     doc.setDrawColor(26, 35, 126);
     doc.setLineWidth(0.5);
     doc.line(
@@ -817,7 +754,6 @@ const handleDownloadReport = (tenant) => {
       pageHeight - margin - footerSpace
     );
 
-    // Add page numbers and confidentiality notice
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     doc.text(
@@ -828,14 +764,11 @@ const handleDownloadReport = (tenant) => {
     );
   }
 
-  // Save the PDF with a formatted name
   try {
     const formattedDate = new Date().toISOString().split("T")[0];
     doc.save(
       `Tenant_Report_${tenant.personalDetails.lastName}_${tenant.personalDetails.firstName}_${formattedDate}.pdf`
     );
-
-    // Show success message
     toast.success("PDF report generated successfully.");
   } catch (error) {
     console.error("Error generating PDF:", error);
@@ -854,11 +787,7 @@ const Tenants = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [editMode, setEditMode] = useState(false);
-const [userPermissions, setUserPermissions] = useState({
-  role: null,
-  permissions: [],
-});
-  // Table control states
+  const [userPermissions, setUserPermissions] = useState({role: null,permissions: [],});
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -939,11 +868,9 @@ const [userPermissions, setUserPermissions] = useState({
   };
 
 const filteredData = tenantsData.filter((row) => {
-  // Helper function to check if a value matches the searchTerm
   const checkMatch = (value) => {
     if (value == null) return false;
     if (typeof value === "object") {
-      // Recursively search within the nested object
       return Object.values(value).some((nestedValue) =>
         checkMatch(nestedValue)
       );
@@ -1021,12 +948,10 @@ const filteredData = tenantsData.filter((row) => {
     setSelectedTenant(null);
   };
 
-  // Helper function to safely render user data
   const renderAddedBy = (addedBy) => {
     if (!addedBy) return "N/A";
     if (typeof addedBy === "string") return addedBy;
     if (typeof addedBy === "object") {
-      // Return the name if available, otherwise email or any identifier that makes sense
       return addedBy.firstName && addedBy.lastName
         ? `${addedBy.firstName} ${addedBy.lastName}`
         : addedBy.email || addedBy._id || "Unknown";
@@ -1034,7 +959,7 @@ const filteredData = tenantsData.filter((row) => {
     return "Unknown";
   };
 
-  // Format date as MM/DD/YYYY
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {

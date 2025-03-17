@@ -88,10 +88,7 @@ async function getStaffById(req, res) {
 
 async function getMyStaff(req, res) {
   try {
-    // Get user ID from the authenticated request
     const userId = req.user.id;
-
-    // Get staff members added by this user
     const staffMembers = await StaffModel.getStaffByCreator(userId);
 
     res.status(200).json({
@@ -130,7 +127,6 @@ async function updateStaff(req, res) {
     const { password, ...otherData } = req.body;
     let updateData = { ...otherData };
 
-    // If password is being updated, hash it first
     if (password) {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);

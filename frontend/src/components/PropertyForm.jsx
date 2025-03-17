@@ -87,13 +87,11 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
     if (initialData && editMode) {
       setFormData({
         ...initialData,
-        // Handle both object and string references
         rslTypeGroup: initialData.rslTypeGroup?.id || initialData.rslTypeGroup,
       });
     }
   }, [initialData, editMode]);
 
-  // Calculate eligible rent when basic rent or service charges change
   useEffect(() => {
     if (formData.basicRent && formData.totalServiceCharges) {
       const basicRent = parseFloat(formData.basicRent) || 0;
@@ -146,21 +144,21 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
       }
     }
 
-    console.log("Validation errors:", newErrors); // Debug log
+    console.log("Validation errors:", newErrors); 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log(`Changing ${name} to:`, value); // Debug log
+    // console.log(`Changing ${name} to:`, value); 
 
     setFormData((prev) => {
       const newData = {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
-      console.log("Updated form data:", newData); // Debug log
+      // console.log("Updated form data:", newData); 
       return newData;
     });
   };
@@ -181,10 +179,9 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
     setLoading(true);
     try {
-      // Create submission data with RSL ID
       const submissionData = {
         ...formData,
-        rslTypeGroup: formData.rslTypeGroup, // Already contains the ID
+        rslTypeGroup: formData.rslTypeGroup, 
       };
 
       if (editMode) {
@@ -580,7 +577,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
               </Grid>
             </Grid>
 
-            {/* Room Details Section (moved under Other Information) */}
+            {/* Room Details Section */}
             <Grid item xs={12}>
               <Typography variant="h6" sx={{ mt: 2 }}>
                 Room Details

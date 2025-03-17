@@ -38,10 +38,7 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import PropertyForm from "../components/PropertyForm";
 import { getAllProperties, deletePropertyById } from "../api/propertyApi.js";
-import {
-  getCurrentUser,
-  getCurrentUserRoleAndPermissions,
-} from "../api/userApi.js";
+import {getCurrentUser,getCurrentUserRoleAndPermissions,} from "../api/userApi.js";
 
 const drawerWidth = 240;
 
@@ -58,13 +55,10 @@ const Properties = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [rslOptions, setRslOptions] = useState([]);
-
-  // Table control states
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
-
   const [userPermissions, setUserPermissions] = useState({
     role: null,
     permissions: [],
@@ -257,22 +251,12 @@ const Properties = () => {
     setSelectedProperty(null);
   };
 
-  // Get status specific color
   const getStatusColor = (status) => {
     return status === "Available"
       ? "#4CAF50"
       : status === "Rented"
       ? "#F44336"
       : "#9C27B0";
-  };
-
-  // Get initials for avatar
-  const getInitials = (name) => {
-    return name
-      ?.split(" ")
-      .map((word) => word.charAt(0))
-      .join("")
-      .toUpperCase();
   };
 
   return (

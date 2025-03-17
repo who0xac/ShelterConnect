@@ -37,8 +37,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import RslForm from "../components/RslForm";
-
-// Import API functions
 import { getAllRSLs, deleteRSLById } from "../api/rslApi.js";
 import { getCurrentUser } from "../api/userApi.js";
 
@@ -56,8 +54,6 @@ const RegisteredRSL = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedRsl, setSelectedRsl] = useState(null);
   const [editMode, setEditMode] = useState(false);
-
-  // Table control states
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -549,7 +545,7 @@ const RegisteredRSL = () => {
                             borderRadius: "6px",
                             fontSize: "0.75rem",
                             fontWeight: 500,
-                            fontFamily: "Poppins, sans-serif", // Fixed the missing closing quote
+                            fontFamily: "Poppins, sans-serif", 
                           }}
                         />
                       </TableCell>

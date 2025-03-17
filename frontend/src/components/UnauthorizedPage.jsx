@@ -120,8 +120,6 @@ const IconContainer = styled.div`
   margin: 0 auto 2rem;
 `;
 
-// IconGlow component is removed
-
 const IconRing = styled.div`
   position: absolute;
   top: 50%;
@@ -304,7 +302,6 @@ const UnauthorizedPage = () => {
   const containerRef = useRef(null);
   const [orbs, setOrbs] = useState([]);
 
-  // Generate background orbs
   useEffect(() => {
     const newOrbs = [
       {
@@ -336,7 +333,6 @@ const UnauthorizedPage = () => {
     setOrbs(newOrbs);
   }, []);
 
-  // Mouse parallax effect
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
@@ -354,13 +350,9 @@ const UnauthorizedPage = () => {
 
       const moveX = (e.clientX - centerX) / 30;
       const moveY = (e.clientY - centerY) / 30;
-
-      // Apply subtle movement to card
       card.style.transform = `perspective(1000px) rotateY(${
         moveX * 0.5
       }deg) rotateX(${-moveY * 0.5}deg)`;
-
-      // Apply more pronounced movement to icon
       lockIcon.style.transform = `translateX(${moveX * 2}px) translateY(${
         moveY * 2
       }px)`;

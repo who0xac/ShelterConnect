@@ -6,8 +6,7 @@ import StaffModel from "../../models/Staff/staffModel.js";
 // Create Tenant
 async function createTenant(req, res) {
   try {
-    console.log("Request Body:", req.body); // Debug: Log the request body
-
+    // console.log("Request Body:", req.body); 
     const {
       addedBy,
       property,
@@ -16,7 +15,6 @@ async function createTenant(req, res) {
       ...tenantData
     } = req.body;
 
-    // Validate required fields
     if (!addedBy || !property) {
       return res.status(400).json({
         success: false,
@@ -24,10 +22,9 @@ async function createTenant(req, res) {
       });
     }
 
-    // Check if user exists in UserModel or StaffModel
     let addedByUser = await UserModel.findById(addedBy);
     if (!addedByUser) {
-      addedByUser = await StaffModel.findStaffById(addedBy); // Check StaffModel if not found in UserModel
+      addedByUser = await StaffModel.findStaffById(addedBy); 
     }
 
     if (!addedByUser) {
@@ -49,8 +46,8 @@ async function createTenant(req, res) {
     const tenant = await TenantModel.createTenant({
       addedBy,
       property,
-      tenantSignature, // Ensure this is included
-      supportWorkerSignature, // Ensure this is included
+      tenantSignature, 
+      supportWorkerSignature, 
       ...tenantData,
     });
 
@@ -99,22 +96,19 @@ async function getAllTenants(req, res) {
 }
 
 // Update Tenant
-// Update Tenant
 async function updateTenant(req, res) {
   try {
-    console.log("Request Body:", req.body); // Debug: Log the request body
+    // console.log("Request Body:", req.body); 
 
     const { _id, addedBy, tenantSignature, supportWorkerSignature, ...updatedData } = req.body;
-
-    // For staff members (role 3), ensure they can't change ownership
     if (req.user.role === 3) {
-      delete updatedData.addedBy; // Prevent staff from changing ownership
+      delete updatedData.addedBy; 
     }
 
     // Update tenant with signature data
     const updatedTenant = await TenantModel.updateTenantById(req.params.id, {
-      tenantSignature, // Ensure this is included
-      supportWorkerSignature, // Ensure this is included
+      tenantSignature, 
+      supportWorkerSignature,
       ...updatedData,
     });
 
@@ -134,6 +128,7 @@ async function updateTenant(req, res) {
     res.status(500).json({ success: false, message: "Error updating tenant" });
   }
 }
+
 // Delete Tenant 
 async function deleteTenant(req, res) {
   try {

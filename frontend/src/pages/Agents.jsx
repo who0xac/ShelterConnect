@@ -60,8 +60,6 @@ const Agents = () => {
   const [editMode, setEditMode] = useState(false);
   const [expandedAgent, setExpandedAgent] = useState(null);
   const [userId, setUserId] = useState(null);
-
-  // Table control states
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -80,8 +78,8 @@ const Agents = () => {
           return;
         }
         const decoded = jwtDecode(token);
-        const id = decoded.id; // Extract userId from the decoded token
-        setUserId(id); // Set userId in state
+        const id = decoded.id; 
+        setUserId(id); 
       } catch (error) {
         console.error("Error fetching user ID:", error);
         toast.error("Failed to fetch user ID");

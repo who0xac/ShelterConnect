@@ -17,8 +17,6 @@ import {
   Checkbox,
   Box,
 } from "@mui/material";
-
-// Import Staff API functions
 import { createStaff, updateStaffById } from "../api/staffApi.js";
 
 // Permission labels
@@ -35,8 +33,6 @@ const PERMISSION_LABELS = [
 
 const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const navigate = useNavigate();
-
-  // State for form data
   const [formData, setFormData] = useState({
     jobTitle: "",
     firstName: "",
@@ -53,16 +49,14 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     checkboxValues: Array(8).fill(false),
   });
 
-  // State for form errors
+  
   const [errors, setErrors] = useState({});
-
   const { checkboxValues, ...restData } = formData;
   const staffData = {
     ...restData,
     permissions: checkboxValues,
   };
 
-  // Initialize form data if in edit mode
  useEffect(() => {
    if (editMode && initialData) {
      
@@ -78,7 +72,7 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
    }
  }, [editMode, initialData]);
 
-  // Handle input changes
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -86,7 +80,6 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
       [name]: value,
     }));
 
-    // Clear error for the field if it exists
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -95,7 +88,6 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     }
   };
 
-  // Handle checkbox changes
   const handleCheckboxChange = (index) => {
     setFormData((prev) => {
       const updatedCheckboxValues = [...prev.checkboxValues];
@@ -104,7 +96,6 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     });
   };
 
-  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
 
@@ -128,8 +119,7 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission
-const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!validateForm()) {
@@ -151,7 +141,7 @@ const handleSubmit = async (e) => {
     }
 
     if (result.success) {
-      // Show success toast
+     
       toast.success(
         editMode
           ? "Staff updated successfully!"
@@ -160,15 +150,13 @@ const handleSubmit = async (e) => {
           position: "top-center",
           autoClose: 2000,
           onClose: () => {
-            // Trigger onSuccess (to refresh data) and onClose (to close the form) after the toast closes
             if (onSuccess) onSuccess();
             if (onClose) onClose();
           },
         }
       );
     } else {
-      // Show error toast
-      toast.error(
+        toast.error(
         result.message || `Failed to ${editMode ? "update" : "register"} staff`,
         { position: "top-center" }
       );
@@ -199,7 +187,6 @@ const handleSubmit = async (e) => {
   }
 };
 
-
   return (
     <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 2 }}>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
@@ -223,7 +210,7 @@ const handleSubmit = async (e) => {
                 label="First Name"
                 name="firstName"
                 value={formData.firstName}
-                onChange={handleInputChange} // Fixed: Changed from sehandleInputChange to handleInputChange
+                onChange={handleInputChange} 
                 error={!!errors.firstName}
                 helperText={errors.firstName}
               />

@@ -12,11 +12,10 @@ const axiosInstance = axios.create({
 // Add Authorization header with token for all requests
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  // console.log("Token from localStorage:", token); // Debug log
-
+  // console.log("Token from localStorage:", token); 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log("Request headers:", config.headers); // Debug log
+    console.log("Request headers:", config.headers); 
   }
   return config;
 });
@@ -24,14 +23,10 @@ axiosInstance.interceptors.request.use((config) => {
 // Function to create staff
 export const createStaff = async (staffData) => {
   try {
-    // Retrieve the token from localStorage
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("No token found");
     }
-
-
-
     const decodedToken = JSON.parse(atob(token.split(".")[1])); 
 
     const userId = decodedToken.id;

@@ -39,8 +39,8 @@ async function loginUser(req, res) {
 
     console.log("User Role:", user.role); 
 
-    const expiresIn = "2h";
-    const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
+    const expiresIn = "7d";
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
     const token = jwt.sign(
       { id: user._id, role: user.role, userType },
@@ -99,7 +99,7 @@ async function registerUser(req, res) {
   }
 }
 
-// Delete User (Soft Delete)
+// Delete User 
 async function deleteUser(req, res) {
   try {
     const deletedUser = await UserModel.DeleteUser(req.params.id);
@@ -131,7 +131,7 @@ async function getUserById(req, res) {
   }
 }
 
-// Get All Users (excluding deleted users)
+// Get All Users
 async function getAllUsers(req, res) {
   try {
     const users = await UserModel.getAllUsers();
@@ -160,10 +160,10 @@ async function updateUser(req, res) {
   }
 }
 
-// Get All Agents (role === 2) with their Properties, Tenants, and Staff
+// Get All Agents
 async function getAllAgents(req, res) {
   try {
-    const agents = await UserModel.getAllAgents(); // Call the static method
+    const agents = await UserModel.getAllAgents(); 
     res.status(200).json({ success: true, data: agents });
   } catch (error) {
     console.error("Get all agents error:", error);
@@ -183,15 +183,14 @@ async function updateUserRSLs(req, res) {
 
     if (!rslIds || !Array.isArray(rslIds)) {
       return res.status(400).json({
-        success: false, // Add success flag
-        message: "Invalid RSL IDs provided",
+        success: false,         message: "Invalid RSL IDs provided",
       });
     }
 
     const updatedUser = await UserModel.updateUserRSLs(userId, rslIds);
     if (!updatedUser) {
       return res.status(404).json({
-        success: false, // Add success flag
+        success: false, 
         message: "User not found",
       });
     }
@@ -215,7 +214,7 @@ async function updateUserRSLs(req, res) {
 async function getUserRSLs(req, res) {
   try {
     const { userId } = req.params;
-    console.log("User ID received:", userId); // Debug log
+    console.log("User ID received:", userId); 
     const userRSLs = await UserModel.getUserRSLs(userId);
     if (!userRSLs) {
       return res.status(404).json({ message: "User not found" });

@@ -15,7 +15,7 @@ axiosInstance.interceptors.request.use((config) => {
   
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log("Request headers:", config.headers); // Debug log
+    // console.log("Request headers:", config.headers); 
   }
   return config;
 });
@@ -31,13 +31,13 @@ export const createProperty = async (propertyData) => {
     const decodedToken = JSON.parse(atob(token.split(".")[1]));
 
     const userId = decodedToken.id;
-    const userEmail = decodedToken.email || "default@example.com"; // Fallback email
-    const userName = decodedToken.name || userEmail.split("@")[0]; // Safe fallback for userName
+    const userEmail = decodedToken.email || "default@example.com"; 
+    const userName = decodedToken.name || userEmail.split("@")[0]; 
 
     const requestData = {
       ...propertyData,
       addedBy: userId,
-      userName: userName, // Use the safer userName
+      userName: userName, 
       addedAt: new Date().toISOString(),
     };
 

@@ -7,7 +7,6 @@ import MainContent from "../components/MainContent.jsx";
 import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);

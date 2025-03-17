@@ -28,7 +28,7 @@ class PropertyModel {
       .populate("addedBy");
   }
 
-  // Delete Property by ID (Soft delete)
+  // Delete Property by ID 
   async deleteProperty(propertyId) {
     return await Property.findByIdAndUpdate(
       propertyId,

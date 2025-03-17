@@ -79,9 +79,8 @@ const getRSLById = async (req, res) => {
 // Update RSL
 const updateRSLById = async (req, res) => {
   try {
-    // Remove visibleTo from the request body if it exists
     const updateData = { ...req.body };
-    delete updateData.visibleTo; // Ignore visibleTo field for now
+    delete updateData.visibleTo; 
 
     const updatedRSL = await RSLModel.updateRSLById(
       req.params.id,

@@ -38,8 +38,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import StaffForm from "../components/StaffForm";
-
-// Import API functions
 import { getAllStaff, deleteStaffById } from "../api/staffApi.js";
 import { getCurrentUser } from "../api/userApi.js";
 
@@ -57,8 +55,6 @@ const Staff = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [editMode, setEditMode] = useState(false);
-
-  // Table control states
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -153,7 +149,8 @@ const Staff = () => {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success", // 'success', 'error', 'warning', 'info'
+    severity: "success", 
+
   });
  const handleDeleteConfirm = async () => {
    try {
@@ -184,8 +181,6 @@ const Staff = () => {
    setOpenDeleteDialog(false);
    setSelectedStaff(null);
  };
-
-
 
   const handleOpenStaffForm = () => {
     setEditMode(false);

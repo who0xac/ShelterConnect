@@ -29,8 +29,8 @@ export const createTenant = async (tenantData) => {
     const decodedToken = JSON.parse(atob(token.split(".")[1]));
 
     const userId = decodedToken.id;
-    const userEmail = decodedToken.email || "default@example.com"; // Fallback email
-    const userName = decodedToken.name || userEmail.split("@")[0]; // Safe fallback for userName
+    const userEmail = decodedToken.email || "default@example.com"; 
+    const userName = decodedToken.name || userEmail.split("@")[0]; 
 
     const requestData = {
       ...tenantData,

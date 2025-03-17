@@ -2,7 +2,7 @@ import express from "express";
 import {
   createTenant,
   getTenantById,
-  getAllTenants,
+  // getAllTenants,
   updateTenant,
   deleteTenant,
   getUserTenants,

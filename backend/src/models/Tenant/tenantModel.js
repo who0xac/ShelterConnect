@@ -28,7 +28,7 @@ class TenantModel {
       .populate("addedBy");
   }
 
-  // Soft delete Tenant by ID
+  //  delete Tenant by ID
   async deleteTenant(tenantId) {
     return await Tenant.findByIdAndUpdate(
       tenantId,

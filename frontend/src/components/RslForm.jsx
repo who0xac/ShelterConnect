@@ -14,13 +14,10 @@ import {
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { createRSL, updateRSLById } from "../api/rslApi.js";
 
-// Import RSL API functions
-import { createRSL, updateRSLById } from "../api/rslApi.js"; 
 const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const navigate = useNavigate();
-
-  // State for form data
   const [formData, setFormData] = useState({
     rslName: "",
     firstName: "",
@@ -35,21 +32,14 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
     logo: null,
   });
 
-  // State for logo preview
   const [logoPreview, setLogoPreview] = useState(null);
-
-  // State for form errors
   const [errors, setErrors] = useState({});
-
-  // Initialize form data if in edit mode
   useEffect(() => {
     if (editMode && initialData) {
       setFormData({
         ...initialData,
-        logo: null, // Reset logo since we don't want to show the old one
+        logo: null, 
       });
-
-      // If there's a logo URL in initialData, set it as preview
       if (initialData.logo) {
         setLogoPreview(initialData.logo);
       }
@@ -110,7 +100,7 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
     }
   };
 
-  // Remove logo from form
+
   const removeLogo = () => {
     setFormData((prev) => ({
       ...prev,
@@ -130,11 +120,11 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Invalid email format";
-   if (!formData.phoneNumber.trim()) {
-     newErrors.phoneNumber = "Phone Number is required";
-   } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
-     newErrors.phoneNumber = "Phone Number must be exactly 10 digits";
-   }
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone Number is required";
+    } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = "Phone Number must be exactly 10 digits";
+    }
     if (!formData.addressLine1.trim())
       newErrors.addressLine1 = "Address is required";
     if (!formData.area.trim()) newErrors.area = "Area is required";
@@ -142,23 +132,17 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
     if (!formData.postCode.trim()) newErrors.postCode = "Post Code is required";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; 
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission (using API functions)
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form before submission
     if (!validateForm()) {
       return;
     }
-
-    // Prepare form data (including logo if uploaded)
     const formDataToSend = new FormData();
     Object.keys(formData).forEach((key) => {
       if (key === "logo" && !formData[key] && editMode) {
-        // Skip logo if it hasn't changed in edit mode
         return;
       }
       formDataToSend.append(key, formData[key]);
@@ -166,23 +150,17 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
     try {
       let result;
-
-      // Use createRSL or updateRSLById based on editMode
       if (editMode) {
         result = await updateRSLById(initialData._id, formDataToSend);
       } else {
         result = await createRSL(formDataToSend);
       }
 
-      // Handle API response
-      // In RslForm.jsx, modify the handleSubmit function:
       if (result.success) {
-        // Call onSuccess first to update the parent component's state
         if (onSuccess) {
           onSuccess();
         }
 
-        // Use the toast with a callback on close
         toast.success(
           editMode
             ? "RSL updated successfully!"
@@ -191,7 +169,6 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
             position: "top-center",
             autoClose: 3000,
             onClose: () => {
-              // Only close the dialog after the toast has finished
               if (onClose) {
                 onClose();
               }
@@ -425,7 +402,6 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
           </Grid>
         </form>
       </Paper>
-     
     </Box>
   );
 };

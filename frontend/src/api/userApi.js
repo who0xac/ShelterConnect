@@ -14,7 +14,7 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.log("Interceptor triggered", error.response?.status); // Debugging
+    console.log("Interceptor triggered", error.response?.status); 
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("expiresAt");
@@ -141,13 +141,12 @@ export const getCurrentUser = async (navigate, setUserName) => {
     let response;
 
     try {
-      // First, try fetching from /api/users/:id
-      response = await api.get(`/${userId}`, config);
+            response = await api.get(`/${userId}`, config);
     } catch (error) {
       console.warn("User not found in /api/users, checking /api/staff...");
 
       try {
-        // If user is not found, try fetching from /api/staff/:id
+        
         response = await axios.get(`${API_BASE_URL2}/${userId}`, config);
       } catch (staffError) {
         console.error("User not found in both APIs.");
@@ -162,8 +161,6 @@ export const getCurrentUser = async (navigate, setUserName) => {
       navigate("/");
       return;
     }
-
-    // Set user name
     setUserName(`${userData.firstName} ${userData.lastName}`);
     return userId;
   } catch (error) {
@@ -171,8 +168,6 @@ export const getCurrentUser = async (navigate, setUserName) => {
     navigate("/");
   }
 };
-
-// Add these methods to your userApi file
 
 // Get RSLs for a user
 export const getUserRSLs = async (userId) => {
@@ -210,7 +205,6 @@ export const getCurrentUserRoleAndPermissions = async () => {
       return null;
     }
 
-    // Decode token to get user ID
     const decoded = jwtDecode(token);
     const userId = decoded.id;
 
@@ -224,13 +218,13 @@ export const getCurrentUserRoleAndPermissions = async () => {
     let response;
 
     try {
-      // First, try fetching from /api/users/:id
+    
       response = await api.get(`/${userId}`, config);
     } catch (error) {
       console.warn("User not found in /api/users, checking /api/staff...");
 
       try {
-        // If user is not found, try fetching from /api/staff/:id
+       
         response = await axios.get(`${API_BASE_URL2}/${userId}`, config);
       } catch (staffError) {
         console.error("User not found in both APIs.");
@@ -244,7 +238,6 @@ export const getCurrentUserRoleAndPermissions = async () => {
       return null;
     }
 
-    // Return role and permissions of the current user
     return {
       role: userData.role,
       permissions: userData.permissions,

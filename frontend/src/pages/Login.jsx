@@ -16,7 +16,6 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Disable scrolling when registration is open
   useEffect(() => {
     document.body.style.overflow = showRegistration ? "hidden" : "auto";
     return () => {
@@ -24,42 +23,32 @@ const LoginPage = () => {
     };
   }, [showRegistration]);
 
-  // Handle Login
   const handleLogin = async () => {
     try {
       const data = await loginUser(email, password);
-
-      // Clear previous state
       window.__logoutTimers?.forEach((timer) => clearTimeout(timer));
 
       localStorage.setItem("token", data.token);
-      const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
+      const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
       localStorage.setItem("expiresAt", expiresAt);
-
-      // Show success toast
       toast.success("Login successful! Redirecting to dashboard...");
-
-      // Wait for toast to be visible before redirecting
       setTimeout(() => {
-        // Force full app state refresh
-        window.location.href = "/dashboard"; // Full page reload instead of navigate()
+        window.location.href = "/dashboard";
       }, 1000);
     } catch (error) {
       console.log("Error", error);
-      // Show error toast
       toast.error("Login failed. Please check your credentials.");
       setError("Invalid email or password. Please try again.");
     }
   };
 
-  // Auto Logout Function
   const autoLogout = (expiresAt) => {
     const timeout = expiresAt - Date.now();
 
     if (timeout > 0) {
       const timer = setTimeout(() => {
         localStorage.clear();
-        window.location.href = "/"; // Full reload
+        window.location.href = "/"; 
       }, timeout);
 
       window.__logoutTimers = window.__logoutTimers || [];
@@ -67,7 +56,6 @@ const LoginPage = () => {
     }
   };
 
-  // Check token expiration on page load
   useEffect(() => {
     const expiresAt = localStorage.getItem("expiresAt");
     if (expiresAt) {

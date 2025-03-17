@@ -31,7 +31,7 @@ class RSLModel {
     );
   }
 
-  // **🔹 Fixed update method**
+  // update rsl
   async updateRSLById(rslId, data) {
     return await RSL.findByIdAndUpdate(rslId, data, { new: true });
   }

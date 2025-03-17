@@ -16,12 +16,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        {/* Authenticated but no role requirement */}
+       
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
 
-        {/* Routes requiring specific roles */}
         <Route element={<ProtectedRoute requiredRole={5} />}>
           <Route path="/registered-rsl" element={<RegisteredRSL />} />
         </Route>
@@ -42,7 +41,6 @@ function App() {
           <Route path="/agents" element={<Agents />} />
         </Route>
 
-        {/* Catch-all 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
