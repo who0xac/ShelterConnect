@@ -24,20 +24,20 @@ async function loginUser(req, res) {
       userType = "staff";
     }
 
-    console.log("User found:", user); 
+    console.log("User found:", user);
 
     if (!user || user.isDeleted) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    console.log("Stored Password:", user.password); 
+    console.log("Stored Password:", user.password);
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    console.log("User Role:", user.role); 
+    console.log("User Role:", user.role);
 
     const expiresIn = "7d";
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
@@ -58,7 +58,6 @@ async function loginUser(req, res) {
       .json({ message: "Internal server error", error: error.message });
   }
 }
-
 
 // User Registration
 async function registerUser(req, res) {
@@ -99,7 +98,7 @@ async function registerUser(req, res) {
   }
 }
 
-// Delete User 
+// Delete User
 async function deleteUser(req, res) {
   try {
     const deletedUser = await UserModel.DeleteUser(req.params.id);
@@ -163,7 +162,7 @@ async function updateUser(req, res) {
 // Get All Agents
 async function getAllAgents(req, res) {
   try {
-    const agents = await UserModel.getAllAgents(); 
+    const agents = await UserModel.getAllAgents();
     res.status(200).json({ success: true, data: agents });
   } catch (error) {
     console.error("Get all agents error:", error);
@@ -183,27 +182,28 @@ async function updateUserRSLs(req, res) {
 
     if (!rslIds || !Array.isArray(rslIds)) {
       return res.status(400).json({
-        success: false,         message: "Invalid RSL IDs provided",
+        success: false,
+        message: "Invalid RSL IDs provided",
       });
     }
 
     const updatedUser = await UserModel.updateUserRSLs(userId, rslIds);
     if (!updatedUser) {
       return res.status(404).json({
-        success: false, 
+        success: false,
         message: "User not found",
       });
     }
 
     res.status(200).json({
-      success: true, 
+      success: true,
       message: "RSLs updated successfully",
       data: updatedUser,
     });
   } catch (error) {
     console.error("Update RSLs error:", error);
     res.status(500).json({
-      success: false, 
+      success: false,
       message: "Internal server error",
       error: error.message,
     });
@@ -214,7 +214,7 @@ async function updateUserRSLs(req, res) {
 async function getUserRSLs(req, res) {
   try {
     const { userId } = req.params;
-    console.log("User ID received:", userId); 
+    console.log("User ID received:", userId);
     const userRSLs = await UserModel.getUserRSLs(userId);
     if (!userRSLs) {
       return res.status(404).json({ message: "User not found" });
@@ -231,7 +231,6 @@ async function getUserRSLs(req, res) {
     });
   }
 }
-
 
 export {
   loginUser,

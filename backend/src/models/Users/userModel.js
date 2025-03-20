@@ -20,7 +20,7 @@ class UserModel {
     return await User.findOne({ _id: userId, isDeleted: false });
   }
 
-  // Find user by ID 
+  // Find user by ID
   async findById(userId) {
     return await User.findById(userId);
   }
@@ -54,14 +54,13 @@ class UserModel {
       // Fetch additional details for each agent
       const agentData = await Promise.all(
         agents.map(async (agent) => {
-          // console.log(`Fetching details for agent: ${agent._id}`); 
+          // console.log(`Fetching details for agent: ${agent._id}`);
           const properties = await propertiesModel.getPropertiesByUser(
             agent._id
           );
           const tenants = await tenantModel.getTenantsByUser(agent._id);
           const staff = await staffModel.getStaffByCreator(agent._id);
 
-        
           const rsls = await this.getUserRSLs(agent._id);
 
           // Return the agent with populated details
@@ -70,7 +69,7 @@ class UserModel {
             properties,
             tenants,
             staff,
-            rsls: rsls.rsls, 
+            rsls: rsls.rsls,
           };
         })
       );
@@ -86,7 +85,7 @@ class UserModel {
   async addRSLsToUser(userId, rslIds) {
     return await User.findByIdAndUpdate(
       userId,
-      { $addToSet: { rsls: { $each: rslIds } } }, 
+      { $addToSet: { rsls: { $each: rslIds } } },
       { new: true }
     );
   }
@@ -95,7 +94,7 @@ class UserModel {
   async removeRSLsFromUser(userId, rslIds) {
     return await User.findByIdAndUpdate(
       userId,
-      { $pull: { rsls: { $in: rslIds } } }, 
+      { $pull: { rsls: { $in: rslIds } } },
       { new: true }
     );
   }
@@ -104,14 +103,14 @@ class UserModel {
   async getUserRSLs(userId) {
     return await User.findById(userId)
       .select("rsls")
-      .populate("rsls", "rslName area"); 
+      .populate("rsls", "rslName area");
   }
 
-  // Update RSLs for a user 
+  // Update RSLs for a user
   async updateUserRSLs(userId, rslIds) {
     return await User.findByIdAndUpdate(
       userId,
-      { rsls: rslIds }, 
+      { rsls: rslIds },
       { new: true }
     );
   }

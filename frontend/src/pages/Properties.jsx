@@ -39,6 +39,7 @@ import Sidebar from "../components/Sidebar";
 import PropertyForm from "../components/PropertyForm";
 import { getAllProperties, deletePropertyById } from "../api/propertyApi.js";
 import {getCurrentUser,getCurrentUserRoleAndPermissions,} from "../api/userApi.js";
+import { getRSLNames } from "../api/rslApi";
 
 const drawerWidth = 240;
 
@@ -63,6 +64,8 @@ const Properties = () => {
     role: null,
     permissions: [],
   });
+
+  
   useEffect(() => {
     const fetchRSLOptions = async () => {
       try {
@@ -71,7 +74,6 @@ const Properties = () => {
           setRslOptions(Array.isArray(result.data) ? result.data : []);
         }
       } catch (error) {
-        // toast.error("Failed to load RSL types");
         console.error("RSL Fetch Error:", error);
         setRslOptions([]);
       }
@@ -84,14 +86,13 @@ const Properties = () => {
       setLoading(true);
       try {
         const result = await getAllProperties();
-       
+
         if (result.success && Array.isArray(result.data)) {
           setPropertiesData(result.data);
         } else {
           setError("Invalid data structure received");
         }
         console.log(result);
-
       } catch (error) {
         console.error("Error fetching properties data:", error);
         setError("Failed to fetch properties data");
@@ -593,9 +594,10 @@ const Properties = () => {
                       <TableCell
                         sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >
-                        {rslOptions.find(
-                          (rsl) => rsl?._id === row?.rslTypeGroup
-                        )?.["rslName"] || "N/A"}
+                        {row.rslTypeGroup?.rslName || // Check for populated data
+                          rslOptions.find((rsl) => rsl._id === row.rslTypeGroup)
+                            ?.rslName ||
+                          "N/A"}
                       </TableCell>
 
                       <TableCell

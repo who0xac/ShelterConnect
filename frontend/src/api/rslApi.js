@@ -86,15 +86,14 @@ export const getRSLNames = async () => {
     // Handle both response formats
     if (Array.isArray(response.data)) {
       rslInfo = response.data.map((rsl) => ({
-        id: rsl._id, 
+        id: rsl._id,
         rslName: rsl.rslName,
-        originalObject: rsl, 
+        originalObject: rsl,
       }));
     } else if (response.data?.data && Array.isArray(response.data.data)) {
       rslInfo = response.data.data.map((rsl) => ({
-        id: rsl._id, 
+        id: rsl._id,
         rslName: rsl.rslName,
-        
       }));
     } else {
       console.error("Unexpected response format:", response.data);

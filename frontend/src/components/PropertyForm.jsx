@@ -144,21 +144,21 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
       }
     }
 
-    console.log("Validation errors:", newErrors); 
+    console.log("Validation errors:", newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // console.log(`Changing ${name} to:`, value); 
+    // console.log(`Changing ${name} to:`, value);
 
     setFormData((prev) => {
       const newData = {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
-      // console.log("Updated form data:", newData); 
+      // console.log("Updated form data:", newData);
       return newData;
     });
   };
@@ -181,7 +181,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
     try {
       const submissionData = {
         ...formData,
-        rslTypeGroup: formData.rslTypeGroup, 
+        rslTypeGroup: formData.rslTypeGroup,
       };
 
       if (editMode) {
@@ -241,31 +241,32 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             )}
           </FormControl>
         </Grid>
-
-        <TextField
-          select
-          fullWidth
-          label="RSL Type"
-          name="rslTypeGroup"
-          value={formData.rslTypeGroup || ""}
-          onChange={(e) => {
-            console.log("RSL Selected:", e.target.value);
-            setFormData((prev) => ({
-              ...prev,
-              rslTypeGroup: e.target.value,
-            }));
-          }}
-          error={!!errors.rslTypeGroup}
-          helperText={errors.rslTypeGroup}
-          required
-        >
-          {Array.isArray(rslOptions) &&
-            rslOptions.map((rsl) => (
-              <MenuItem key={rsl._id || rsl.id} value={rsl._id || rsl.id}>
-                {rsl.rslName || rsl.name}
-              </MenuItem>
-            ))}
-        </TextField>
+        <Grid item xs={12}>
+          <TextField
+            select
+            fullWidth
+            label="RSL Type"
+            name="rslTypeGroup"
+            value={formData.rslTypeGroup || ""}
+            onChange={(e) => {
+              console.log("RSL Selected:", e.target.value);
+              setFormData((prev) => ({
+                ...prev,
+                rslTypeGroup: e.target.value,
+              }));
+            }}
+            error={!!errors.rslTypeGroup}
+            helperText={errors.rslTypeGroup}
+            required
+          >
+            {Array.isArray(rslOptions) &&
+              rslOptions.map((rsl) => (
+                <MenuItem key={rsl._id || rsl.id} value={rsl._id || rsl.id}>
+                  {rsl.rslName || rsl.name}
+                </MenuItem>
+              ))}
+          </TextField>
+        </Grid>
         <Grid item xs={12}>
           <TextField
             fullWidth

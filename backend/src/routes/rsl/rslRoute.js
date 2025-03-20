@@ -28,7 +28,6 @@ const upload = multer({ storage });
 
 const rsl = express.Router();
 
-
 rsl.post("/", upload.single("logo"), async (req, res) => {
   try {
     req.body.logo = req.file ? `/uploads/${req.file.filename}` : null;
@@ -40,17 +39,15 @@ rsl.post("/", upload.single("logo"), async (req, res) => {
   }
 });
 
-
 rsl.put("/:id", upload.single("logo"), async (req, res) => {
   try {
     const rslId = req.params.id;
     let updatedData = { ...req.body };
-    const oldRSL = await RSLModel.findRSLById(rslId); 
+    const oldRSL = await RSLModel.findRSLById(rslId);
     if (!oldRSL) {
       return res.status(404).json({ message: "RSL not found" });
     }
 
-  
     if (req.file) {
       updatedData.logo = `/uploads/${req.file.filename}`;
       if (oldRSL.logo) {
@@ -61,7 +58,6 @@ rsl.put("/:id", upload.single("logo"), async (req, res) => {
       }
     }
 
-    
     req.body = updatedData;
     await updateRSLById(req, res);
   } catch (error) {
@@ -70,7 +66,6 @@ rsl.put("/:id", upload.single("logo"), async (req, res) => {
       .json({ message: "Error updating RSL", error: error.message });
   }
 });
-
 
 rsl.get("/", getAllRSLs);
 rsl.get("/:id", getRSLById);
