@@ -114,6 +114,7 @@ async function getAllProperties(req, res) {
   }
 }
 
+
 // Get User Properties 
 async function getUserProperties(req, res) {
   try {
