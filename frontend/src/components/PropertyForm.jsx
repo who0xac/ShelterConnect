@@ -24,7 +24,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const [rslOptions, setRslOptions] = useState([]);
   const [showOtherInfo, setShowOtherInfo] = useState(false);
   const [formData, setFormData] = useState({
-    responsibleForCouncilTax: " RSL/Housing provider",
+    responsibleForCouncilTax: "RSL/Housing provider",
     rslTypeGroup: null,
     address: "",
     noOfBedrooms: "",
@@ -75,7 +75,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
     const loadRSLs = async () => {
       try {
         const rslData = await getRSLNames();
-        console.log("Received RSL data:", rslData);
         setRslOptions(rslData);
       } catch (error) {
         console.error("Error loading RSLs:", error);
@@ -108,30 +107,33 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.rslTypeGroup) {
-      newErrors.rslTypeGroup = "RSL is required";
-      console.log("RSL validation failed");
-    }
+    // Basic Details
+    if (!formData.rslTypeGroup) newErrors.rslTypeGroup = "RSL is required";
     if (!formData.responsibleForCouncilTax)
       newErrors.responsibleForCouncilTax =
         "Council tax responsibility is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.area.trim()) newErrors.area = "Area is required";
     if (!formData.city.trim()) newErrors.city = "City is required";
-    if (
-      !formData.postCode.trim() ||
-      !/^[0-9a-zA-Z\s]{5,8}$/.test(formData.postCode)
-    ) {
-      newErrors.postCode = "Valid postcode required";
+    if (!formData.postCode.trim()) {
+      newErrors.postCode = "Postcode is required";
+    } else if (!/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(formData.postCode)) {
+      newErrors.postCode = "Invalid UK postcode format";
     }
+    if (!formData.noOfBedrooms)
+      newErrors.noOfBedrooms = "Number of bedrooms is required";
+
+    // Financial Details
     if (!formData.basicRent) newErrors.basicRent = "Basic rent is required";
     if (!formData.totalServiceCharges)
       newErrors.totalServiceCharges = "Service charges are required";
+    if (!formData.weeklyIneligibleCharge)
+      newErrors.weeklyIneligibleCharge = "Weekly ineligible charge is required";
 
+    // Other Information
     if (showOtherInfo) {
       if (!formData.quantityOfFloors)
         newErrors.quantityOfFloors = "Number of floors is required";
-
       if (
         !(
           formData.unfurnished ||
@@ -144,23 +146,22 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
       }
     }
 
-    console.log("Validation errors:", newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // console.log(`Changing ${name} to:`, value);
 
-    setFormData((prev) => {
-      const newData = {
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      };
-      // console.log("Updated form data:", newData);
-      return newData;
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+
+    // Clear error for the current field
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleRadioChange = (name, value) => {
@@ -168,6 +169,11 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
       ...prev,
       [name]: value === "yes",
     }));
+
+    // Clear error for the current field
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -202,13 +208,30 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
     }
   };
 
+  // Reusable Radio Group Component
+  const renderRadioGroup = (name, label, value, onChange) => (
+    <FormControl fullWidth error={!!errors[name]}>
+      <FormLabel>{label}</FormLabel>
+      <RadioGroup row value={value} onChange={onChange}>
+        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+        <FormControlLabel value="no" control={<Radio />} label="No" />
+      </RadioGroup>
+      {errors[name] && (
+        <Typography color="error" variant="caption">
+          {errors[name]}
+        </Typography>
+      )}
+    </FormControl>
+  );
+
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography variant="h6">Property Details</Typography>
           <Divider sx={{ mb: 2 }} />
         </Grid>
+
         {/* Basic Property Details */}
         <Grid item xs={12}>
           <FormControl
@@ -224,7 +247,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
               row
             >
               <FormControlLabel
-                value=" RSL/Housing provider"
+                value="RSL/Housing provider"
                 control={<Radio />}
                 label="RSL/Housing provider"
               />
@@ -241,6 +264,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             )}
           </FormControl>
         </Grid>
+
         <Grid item xs={12}>
           <TextField
             select
@@ -249,7 +273,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             name="rslTypeGroup"
             value={formData.rslTypeGroup || ""}
             onChange={(e) => {
-              console.log("RSL Selected:", e.target.value);
               setFormData((prev) => ({
                 ...prev,
                 rslTypeGroup: e.target.value,
@@ -267,6 +290,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
               ))}
           </TextField>
         </Grid>
+
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -279,6 +303,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
+
         <Grid item xs={12} md={4}>
           <TextField
             fullWidth
@@ -291,6 +316,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
+
         <Grid item xs={12} md={4}>
           <TextField
             fullWidth
@@ -303,6 +329,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
+
         <Grid item xs={12} md={4}>
           <TextField
             fullWidth
@@ -311,53 +338,40 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             value={formData.postCode}
             onChange={handleChange}
             error={!!errors.postCode}
-            helperText={errors.postCode}
+            helperText={errors.postCode || "Format: EC1A 1BB"}
             required
           />
         </Grid>
+
+        {/* Radio Groups */}
         <Grid item xs={12} md={4}>
-          <FormControl fullWidth>
-            <FormLabel>Bedsit</FormLabel>
-            <RadioGroup
-              row
-              value={formData.bedsit ? "yes" : "no"}
-              onChange={(e) => handleRadioChange("bedsit", e.target.value)}
-            >
-              <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-              <FormControlLabel value="no" control={<Radio />} label="No" />
-            </RadioGroup>
-          </FormControl>
+          {renderRadioGroup(
+            "bedsit",
+            "Bedsit",
+            formData.bedsit ? "yes" : "no",
+            (e) => handleRadioChange("bedsit", e.target.value)
+          )}
         </Grid>
+
         <Grid item xs={12} md={4}>
-          <FormControl fullWidth>
-            <FormLabel>Self-contained Flat</FormLabel>
-            <RadioGroup
-              row
-              value={formData.selfContainedFlat ? "yes" : "no"}
-              onChange={(e) =>
-                handleRadioChange("selfContainedFlat", e.target.value)
-              }
-            >
-              <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-              <FormControlLabel value="no" control={<Radio />} label="No" />
-            </RadioGroup>
-          </FormControl>
+          {renderRadioGroup(
+            "selfContainedFlat",
+            "Self-contained Flat",
+            formData.selfContainedFlat ? "yes" : "no",
+            (e) => handleRadioChange("selfContainedFlat", e.target.value)
+          )}
         </Grid>
+
         <Grid item xs={12} md={4}>
-          <FormControl fullWidth>
-            <FormLabel>Shared with Others</FormLabel>
-            <RadioGroup
-              row
-              value={formData.sharedWithOther ? "yes" : "no"}
-              onChange={(e) =>
-                handleRadioChange("sharedWithOther", e.target.value)
-              }
-            >
-              <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-              <FormControlLabel value="no" control={<Radio />} label="No" />
-            </RadioGroup>
-          </FormControl>
+          {renderRadioGroup(
+            "sharedWithOther",
+            "Shared with Others",
+            formData.sharedWithOther ? "yes" : "no",
+            (e) => handleRadioChange("sharedWithOther", e.target.value)
+          )}
         </Grid>
+
+        {/* Number of Bedrooms */}
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -367,9 +381,12 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             inputProps={{ min: 0 }}
             value={formData.noOfBedrooms}
             onChange={handleChange}
+            error={!!errors.noOfBedrooms}
+            helperText={errors.noOfBedrooms}
             required
           />
         </Grid>
+
         {/* Financial Details */}
         <Grid item xs={12}>
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -377,6 +394,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
           </Typography>
           <Divider sx={{ mb: 2 }} />
         </Grid>
+
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -391,6 +409,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
+
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -405,6 +424,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
+
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -413,11 +433,10 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             type="number"
             inputProps={{ min: 0, step: "0.01", readOnly: true }}
             value={formData.totalEligibleRent}
-            InputProps={{
-              readOnly: true,
-            }}
+            InputProps={{ readOnly: true }}
           />
         </Grid>
+
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
@@ -432,6 +451,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             required
           />
         </Grid>
+
         {/* Other Information Checkbox */}
         <Grid item xs={12}>
           <FormControlLabel
@@ -444,6 +464,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             label="Other Information"
           />
         </Grid>
+
         {showOtherInfo && (
           <>
             {/* Property Features */}
@@ -490,50 +511,52 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="subtitle1">Furnishing</Typography>
-              {errors.furnishing && (
-                <Typography color="error" variant="caption">
-                  {errors.furnishing}
-                </Typography>
-              )}
-              <Grid container>
-                <Grid item xs={4}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={formData.unfurnished}
-                        onChange={handleChange}
-                        name="unfurnished"
-                      />
-                    }
-                    label="Unfurnished"
-                  />
+              <FormControl error={!!errors.furnishing} component="fieldset">
+                <Typography variant="subtitle1">Furnishing</Typography>
+                {errors.furnishing && (
+                  <Typography color="error" variant="caption">
+                    {errors.furnishing}
+                  </Typography>
+                )}
+                <Grid container>
+                  <Grid item xs={4}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.unfurnished}
+                          onChange={handleChange}
+                          name="unfurnished"
+                        />
+                      }
+                      label="Unfurnished"
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.partFurnished}
+                          onChange={handleChange}
+                          name="partFurnished"
+                        />
+                      }
+                      label="Part Furnished"
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.fullyFurnished}
+                          onChange={handleChange}
+                          name="fullyFurnished"
+                        />
+                      }
+                      label="Fully Furnished"
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={4}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={formData.partFurnished}
-                        onChange={handleChange}
-                        name="partFurnished"
-                      />
-                    }
-                    label="Part Furnished"
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={formData.fullyFurnished}
-                        onChange={handleChange}
-                        name="fullyFurnished"
-                      />
-                    }
-                    label="Fully Furnished"
-                  />
-                </Grid>
-              </Grid>
+              </FormControl>
             </Grid>
 
             <Grid item xs={12}>
@@ -853,6 +876,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
             </Grid>
           </>
         )}
+
         {/* Action Buttons */}
         <Grid
           item
