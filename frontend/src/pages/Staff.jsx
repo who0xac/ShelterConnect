@@ -929,7 +929,7 @@ const Staff = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
-        ;
+        
         <ToastContainer
           position="top-center"
           autoClose={5000}

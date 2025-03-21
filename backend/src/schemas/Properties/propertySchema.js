@@ -4,7 +4,7 @@ const PropertySchema = new mongoose.Schema(
   {
     responsibleForCouncilTax: {
       type: String,
-      enum: [" RSL/Housing provider", "Tenant"],
+      enum: ["RSL/Housing provider", "Tenant"], 
       required: true,
     },
     rslTypeGroup: {
@@ -12,13 +12,6 @@ const PropertySchema = new mongoose.Schema(
       ref: "RSL",
       required: true,
     },
-    rsls: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "RSL", 
-        default: [],
-      },
-    ],
     address: { type: String, required: true },
     noOfBedrooms: { type: Number, required: true },
     area: { type: String, required: true },

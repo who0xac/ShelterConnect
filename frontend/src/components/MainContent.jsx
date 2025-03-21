@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+
 import {
   Box,
   Typography,
@@ -14,6 +15,7 @@ import {
   Button,
   Tooltip,
 } from "@mui/material";
+
 import {
   People as PeopleIcon,
   HomeWork as PropertyIcon,
@@ -23,12 +25,15 @@ import {
   PieChart as ChartIcon,
   DownloadSharp as DownloadIcon,
 } from "@mui/icons-material";
+
 import { jwtDecode } from "jwt-decode";
+
 import { getAllAgents } from "../api/userApi.js";
 import { getAllProperties } from "../api/propertyApi.js";
 import { getAllRSLs } from "../api/rslApi.js";
 import { getAllStaff } from "../api/staffApi.js";
 import { getAllTenants } from "../api/tenantApi.js";
+
 import {
   PieChart,
   Pie,
@@ -42,11 +47,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 const MainContent = ({ sidebarOpen, drawerWidth }) => {
   const theme = useTheme();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -121,7 +128,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
     }
   };
 
-  // Updated function: Remove any username handling from the token
+  // Remove any username handling from the token
   const getUserRoleFromToken = () => {
     try {
       const token = localStorage.getItem("token");
@@ -214,9 +221,9 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
       }, {})
     ).map(([city, data]) => ({
       city,
-      basicRent: data.basicRent / data.count,
-      serviceCharges: data.serviceCharges / data.count,
-      eligibleRent: data.eligibleRent / data.count,
+      basicRent: Number((data.basicRent / data.count).toFixed(2)),
+      serviceCharges: Number((data.serviceCharges / data.count).toFixed(2)),
+      eligibleRent: Number((data.eligibleRent / data.count).toFixed(2)),
     }));
     const ethnicOrigin = Object.entries(
       tenantData.reduce((acc, t) => {
@@ -330,6 +337,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           }
         }
       }
+
       setData({
         tenants: tenantData.length,
         properties: propertyData.length,
@@ -337,6 +345,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
         rsls: rslData.length,
         agents: agentData.length,
       });
+
       const visualizationResults = processVisualizationData(
         propertyData,
         tenantData
@@ -479,7 +488,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
 
   const renderVisualizationCards = () => {
     const visualizationCardStyle = {
-      minHeight: 320,
+      minHeight: 400, // increased from 320 for more room
       boxShadow: theme.shadows[3],
       borderRadius: "16px",
       p: 2,
@@ -509,7 +518,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Breakdown of property types for clarity
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -552,7 +561,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Properties concentration by city
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={visualizationData.cityDistribution}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -584,7 +593,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Proportion of shared living spaces
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -627,7 +636,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Tenant diversity insights
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={visualizationData.ethnicOrigin}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -659,7 +668,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Tenants with criminal records
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -706,7 +715,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Support services overview
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -754,7 +763,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Furnishings distribution across properties
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -797,7 +806,7 @@ const MainContent = ({ sidebarOpen, drawerWidth }) => {
           >
             Basic Rent, Service Charges & Eligible Rent
           </Typography>
-          <Box sx={{ height: 220 }}>
+          <Box sx={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={visualizationData.financialMetrics}>
                 <CartesianGrid strokeDasharray="3 3" />

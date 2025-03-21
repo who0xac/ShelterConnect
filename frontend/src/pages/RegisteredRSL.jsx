@@ -388,6 +388,7 @@ const RegisteredRSL = () => {
               <TableHead>
                 <TableRow sx={{ bgcolor: "#f5f7fa" }}>
                   {[
+                    { key: "logo", label: "Logo" }, // New column for the logo
                     { key: "rslName", label: "RSL Name" },
                     { key: "firstName", label: "First Name" },
                     { key: "lastName", label: "Last Name" },
@@ -403,7 +404,9 @@ const RegisteredRSL = () => {
                     <TableCell
                       key={column.key}
                       onClick={() =>
-                        column.key !== "actions" && handleSort(column.key)
+                        column.key !== "actions" &&
+                        column.key !== "logo" &&
+                        handleSort(column.key)
                       }
                       sx={{
                         fontFamily: "Poppins, sans-serif",
@@ -412,9 +415,11 @@ const RegisteredRSL = () => {
                         fontSize: "0.875rem",
                         py: 2.5,
                         cursor:
-                          column.key !== "actions" ? "pointer" : "default",
+                          column.key !== "actions" && column.key !== "logo"
+                            ? "pointer"
+                            : "default",
                         "&:hover":
-                          column.key !== "actions"
+                          column.key !== "actions" && column.key !== "logo"
                             ? { bgcolor: "rgba(0, 0, 0, 0.04)" }
                             : {},
                         transition: "background-color 0.2s ease",
@@ -439,7 +444,7 @@ const RegisteredRSL = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={11} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
                       <Box
                         sx={{
                           display: "flex",
@@ -467,18 +472,18 @@ const RegisteredRSL = () => {
                           Loading RSL data...
                         </Typography>
                         <style>{`
-                          @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                          }
-                        `}</style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
                       </Box>
                     </TableCell>
                   </TableRow>
                 ) : error ? (
                   <TableRow>
                     <TableCell
-                      colSpan={11}
+                      colSpan={12}
                       align="center"
                       sx={{
                         py: 4,
@@ -501,7 +506,7 @@ const RegisteredRSL = () => {
                   </TableRow>
                 ) : currentData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
                       <Box
                         sx={{
                           display: "flex",
@@ -537,6 +542,21 @@ const RegisteredRSL = () => {
                       <TableCell
                         sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >
+                        {row.logo && (
+                          <img
+                            src={`http://localhost:3000${row.logo}`} // Use the backend URL
+                            alt="RSL Logo"
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              borderRadius: "8px",
+                            }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
+                      >
                         <Chip
                           label={row.rslName}
                           size="small"
@@ -545,19 +565,15 @@ const RegisteredRSL = () => {
                             borderRadius: "6px",
                             fontSize: "0.75rem",
                             fontWeight: 500,
-                            fontFamily: "Poppins, sans-serif", 
+                            fontFamily: "Poppins, sans-serif",
                           }}
                         />
                       </TableCell>
                       <TableCell
-                        sx={{
-                          py: 2.5,
-                          fontFamily: "Poppins, sans-serif",
-                        }}
+                        sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >
                         {row.firstName}
                       </TableCell>
-
                       <TableCell
                         sx={{ py: 2.5, fontFamily: "Poppins, sans-serif" }}
                       >

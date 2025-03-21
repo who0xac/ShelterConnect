@@ -120,11 +120,13 @@ const RslForm = ({ onSuccess, onClose, initialData, editMode }) => {
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Invalid email format";
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone Number is required";
-    } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = "Phone Number must be exactly 10 digits";
-    }
+ if (!formData.phoneNumber.trim()) {
+   newErrors.phoneNumber = "Phone Number is required";
+ } else if (!/^\+44\s\d{2}\s\d{4}\s\d{4}$/.test(formData.phoneNumber)) {
+   newErrors.phoneNumber =
+     "Phone Number must be in the format +44 00 0000 0000";
+ }
+
     if (!formData.addressLine1.trim())
       newErrors.addressLine1 = "Address is required";
     if (!formData.area.trim()) newErrors.area = "Area is required";

@@ -109,9 +109,6 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
 
     // Basic Details
     if (!formData.rslTypeGroup) newErrors.rslTypeGroup = "RSL is required";
-    if (!formData.responsibleForCouncilTax)
-      newErrors.responsibleForCouncilTax =
-        "Council tax responsibility is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.area.trim()) newErrors.area = "Area is required";
     if (!formData.city.trim()) newErrors.city = "City is required";

@@ -103,9 +103,10 @@ const StaffForm = ({ onSuccess, onClose, initialData, editMode }) => {
     if (!formData.firstName.trim())
       newErrors.firstName = "First Name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
-    if (!formData.phone.trim()) newErrors.phone = "Phone is required";
-    else if (!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = "Phone must be exactly 10 digits";
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone is required";
+    } else if (!/^\+44\s?\d{4}\s?\d{6}$/.test(formData.phone)) {
+      newErrors.phone = "Phone must be in the format +44 0000 991111";
     }
     if (!formData.username.trim()) newErrors.username = "Username is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
