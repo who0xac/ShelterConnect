@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
   },
 });
 
-// Add Authorization header with token for all requests
+
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   // console.log("Token from localStorage:", token); 
@@ -38,9 +38,7 @@ export const createStaff = async (staffData) => {
       correspondingEmail: userEmail, 
     };
 
-    // Send POST request to the API
     const response = await axiosInstance.post("/", requestData);
-
     console.log("Staff created successfully:", response.data);
     return response.data;
   } catch (error) {

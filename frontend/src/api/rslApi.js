@@ -1,7 +1,6 @@
 import axios from "axios";
 const API_BASE_URL = "http://localhost:3000/api/rsl";
 
-// Utility function to validate RSL ID
 const isValidRSLId = (rslId) => {
   return typeof rslId === "string" || typeof rslId === "number";
 };

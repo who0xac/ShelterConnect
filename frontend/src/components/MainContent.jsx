@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-
 import {
   Box,
   Typography,
@@ -15,7 +14,6 @@ import {
   Button,
   Tooltip,
 } from "@mui/material";
-
 import {
   People as PeopleIcon,
   HomeWork as PropertyIcon,
@@ -25,15 +23,12 @@ import {
   PieChart as ChartIcon,
   DownloadSharp as DownloadIcon,
 } from "@mui/icons-material";
-
 import { jwtDecode } from "jwt-decode";
-
 import { getAllAgents } from "../api/userApi.js";
 import { getAllProperties } from "../api/propertyApi.js";
 import { getAllRSLs } from "../api/rslApi.js";
 import { getAllStaff } from "../api/staffApi.js";
 import { getAllTenants } from "../api/tenantApi.js";
-
 import {
   PieChart,
   Pie,
@@ -47,7 +42,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 

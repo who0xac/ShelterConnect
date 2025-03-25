@@ -42,7 +42,6 @@ import {getCurrentUser,getCurrentUserRoleAndPermissions,} from "../api/userApi.j
 import { getRSLNames } from "../api/rslApi";
 
 const drawerWidth = 240;
-
 const Properties = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);

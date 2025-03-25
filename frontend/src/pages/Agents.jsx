@@ -46,7 +46,6 @@ import { getAllAgents, updateUserById } from "../api/userApi.js";
 import { jwtDecode } from "jwt-decode";
 
 const drawerWidth = 240;
-
 const Agents = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);

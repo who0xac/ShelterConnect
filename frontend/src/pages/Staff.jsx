@@ -42,7 +42,6 @@ import { getAllStaff, deleteStaffById } from "../api/staffApi.js";
 import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
-
 const Staff = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);

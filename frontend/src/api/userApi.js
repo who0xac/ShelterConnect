@@ -5,12 +5,10 @@ import { toast } from "react-toastify";
 const API_BASE_URL = "http://localhost:3000/api/users";
 const API_BASE_URL2 = "http://localhost:3000/api/staff";
 
-// Create Axios instance
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
-
-// Add Axios Interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => response,
   (error) => {

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import UserModel from "../models/Users/userModel.js";
-import StaffModel from "../models/Staff/staffModel.js"; // Import Staff model
+import StaffModel from "../models/Staff/staffModel.js"; 
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -8,8 +8,7 @@ dotenv.config();
 const authMiddleware = async (req, res, next) => {
   try {
     // Get token from request headers
-    const token = req.header("Authorization").split(" ")[1]; // "Bearer <token>"
-
+    const token = req.header("Authorization").split(" ")[1]; 
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -19,19 +18,14 @@ const authMiddleware = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user data to request
+    req.user = decoded; 
 
     let user;
-
-    // First, check in UserModel
     user = await UserModel.findById(req.user.id);
-
-    // If not found in UserModel, check in StaffModel
     if (!user) {
       user = await StaffModel.findStaffById(req.user.id);
     }
 
-    // If still not found, return error
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -40,7 +34,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     // Attach role & continue
-    req.user.role = user.role; // Assign role from database
+    req.user.role = user.role; 
     next();
   } catch (error) {
     console.error("Auth Middleware Error:", error);

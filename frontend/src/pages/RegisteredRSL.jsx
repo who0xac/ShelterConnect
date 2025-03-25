@@ -41,7 +41,6 @@ import { getAllRSLs, deleteRSLById } from "../api/rslApi.js";
 import { getCurrentUser } from "../api/userApi.js";
 
 const drawerWidth = 240;
-
 const RegisteredRSL = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);

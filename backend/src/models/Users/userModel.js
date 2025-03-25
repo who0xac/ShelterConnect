@@ -43,12 +43,9 @@ class UserModel {
   async updateUserById(userId, data) {
     return await User.findByIdAndUpdate(userId, data, { new: true });
   }
-
-  // Get all users where role is 2 (Agents) and fetch their properties, tenants, and staff
   async getAllAgents() {
     try {
       // console.log("Fetching agents from database...");
-      // Fetch all users with role === 2 (agents) and isDeleted === false
       const agents = await User.find({ role: 2, isDeleted: false });
 
       // Fetch additional details for each agent
@@ -60,10 +57,7 @@ class UserModel {
           );
           const tenants = await tenantModel.getTenantsByUser(agent._id);
           const staff = await staffModel.getStaffByCreator(agent._id);
-
           const rsls = await this.getUserRSLs(agent._id);
-
-          // Return the agent with populated details
           return {
             ...agent._doc,
             properties,

@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import route from './routes/route.js';
 import { fileURLToPath } from "url";
 import path from 'path';
+
 // Load environment variables from .env file
 dotenv.config();
 
