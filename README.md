@@ -111,7 +111,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/GarudaR007X/shelterconnect.git
+   git clone https://github.com/who0xac/shelterconnect.git
    cd shelterconnect
    ```
 
@@ -160,11 +160,7 @@ We welcome contributions to ShelterConnect! Please follow these steps:
 
 Please ensure your code adheres to our style guidelines and passes all tests.
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
 
 <div align="center">
   <p><b>ShelterConnect</b> — Building bridges to better lives</p>
