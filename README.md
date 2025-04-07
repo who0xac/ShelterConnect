@@ -6,7 +6,7 @@
   
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
   [![UK Government Backed](https://img.shields.io/badge/UK%20Government-Backed-green)](https://www.gov.uk/)
-  [![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/GarudaR007X/shelterconnect)
+  [![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/who0xac/shelterconnect)
   
 </div>
 
