@@ -168,5 +168,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
   <p><b>ShelterConnect</b> — Building bridges to better lives</p>
-  <p>Made with ❤️ by <a href="https://github.com/GarudaR007X">GarudaR007X</a></p>
+  <p>Made with ❤️ by <a href="https://github.com/who0xac">who0xac</a></p>
 </div>
