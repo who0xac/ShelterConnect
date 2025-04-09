@@ -557,7 +557,7 @@ const TenantForm = ({ onSuccess, onClose, initialData, editMode }) => {
     console.log("Form Data Before Submission:", formData); 
 
     if (!validate()) {
-      toast.error("Please correct the errors in the form");
+      toast.error("Kindly complete all required fields");
       return;
     }
 

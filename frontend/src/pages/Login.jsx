@@ -37,7 +37,9 @@ const LoginPage = () => {
       }, 1000);
     } catch (error) {
       console.log("Error", error);
-      toast.error("Login failed. Please check your credentials.");
+    toast.error("Kindly complete all required fields.", {
+      autoClose: 3000, 
+    });
       setError("Invalid email or password. Please try again.");
     }
   };

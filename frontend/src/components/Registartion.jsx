@@ -100,7 +100,7 @@ const Registration = ({ onBackToLogin }) => {
     setError("");
 
     if (!validateForm()) {
-      toast.error("Please fix the errors in the form.");
+      toast.error("Kindly complete all required fields.");
       return;
     }
 

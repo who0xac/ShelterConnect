@@ -176,7 +176,7 @@ const PropertyForm = ({ onSuccess, onClose, initialData, editMode }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
-      toast.error("Please correct the errors in the form");
+      toast.error("Kindly complete all required fields");
       return;
     }
 

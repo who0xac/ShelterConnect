@@ -16,10 +16,10 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("expiresAt");
-      toast.info("Session expired, logging out...", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      // toast.info("Session expired, logging out...", {
+      //   position: "top-right",
+      //   autoClose: 3000,
+      // });
       window.location.href = "/";
     }
     return Promise.reject(error);
